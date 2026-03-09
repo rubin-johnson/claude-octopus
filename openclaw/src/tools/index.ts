@@ -81,7 +81,6 @@ export const SKILL_REGISTRY: SkillRegistryEntry[] = [
   { name: "embrace", description: "Full Double Diamond workflow - Research → Define → Develop → Deliver", type: "command", file: "embrace.md" },
   { name: "extract", description: "Design System & Product Reverse-Engineering - Extract tokens, components, architecture, and PRDs from codebases or live products", type: "command", file: "extract.md" },
   { name: "factory", description: "Dark Factory Mode - Spec-in, software-out autonomous pipeline", type: "command", file: "factory.md" },
-  { name: "issues", description: "Track, inspect, and resolve cross-session Octopus issues", type: "command", file: "issues.md" },
   { name: "km", description: "Switch to Knowledge Work mode (or toggle with off)", type: "command", file: "km.md" },
   { name: "loop", description: "Execute tasks in loops with conditions, iterative improvements until goals are met", type: "command", file: "loop.md" },
   { name: "meta-prompt", description: "Generate an optimized prompt for any task using meta-prompting techniques", type: "command", file: "meta-prompt.md" },
@@ -95,20 +94,15 @@ export const SKILL_REGISTRY: SkillRegistryEntry[] = [
   { name: "prd", description: "Write an AI-optimized PRD using multi-AI orchestration and 100-point scoring framework", type: "command", file: "prd.md" },
   { name: "quick", description: "Quick execution mode for ad-hoc tasks without full workflow overhead", type: "command", file: "quick.md" },
   { name: "research", description: "Deep research with multi-source synthesis and comprehensive analysis", type: "command", file: "research.md" },
-  { name: "resume", description: "Restore project context from prior Claude Octopus session", type: "command", file: "resume.md" },
   { name: "review", description: "Expert code review with comprehensive quality assessment and security analysis", type: "command", file: "review.md" },
-  { name: "rollback", description: "Restore project state from a saved checkpoint", type: "command", file: "rollback.md" },
   { name: "schedule", description: "Manage scheduled workflow jobs (add/list/remove/enable/disable/logs)", type: "command", file: "schedule.md" },
   { name: "scheduler", description: "Manage the scheduled workflow runner daemon (start/stop/status)", type: "command", file: "scheduler.md" },
   { name: "security", description: "Security audit with OWASP compliance and vulnerability detection", type: "command", file: "security.md" },
   { name: "sentinel", description: "GitHub-aware work monitor - triages issues, PRs, and CI failures", type: "command", file: "sentinel.md" },
-  { name: "ship", description: "Finalize project delivery with validation and checkpointing", type: "command", file: "ship.md" },
   { name: "spec", description: "NLSpec authoring - Structured specification from multi-AI research", type: "command", file: "spec.md" },
   { name: "staged-review", description: "Two-stage review: spec compliance then code quality", type: "command", file: "staged-review.md" },
-  { name: "status", description: "Show Claude Octopus workflow and provider status", type: "command", file: "status.md" },
   { name: "sys-setup", description: "Check Claude Octopus setup status and get configuration instructions", type: "command", file: "sys-setup.md" },
   { name: "tdd", description: "Test-driven development with red-green-refactor discipline", type: "command", file: "tdd.md" },
-  { name: "validate", description: "Run comprehensive multi-AI validation on code or project targets", type: "command", file: "validate.md" },
 ];
 
-export const REGISTRY_COUNT = 94;
+export const REGISTRY_COUNT = 88;
