@@ -1,3 +1,11 @@
+## [9.4.1] - 2026-03-17
+
+### Changed
+
+- Flag pruning, speed optimization (~750 fewer subshell forks), pre-existing test fixes
+
+---
+
 # Changelog
 
 ## [9.4.0] - 2026-03-17
