@@ -42,7 +42,7 @@ else:
 # Extract the feature summary (first part before counts)
 # Format: "v8.33.0 - UI/UX design workflow with BM25 design intelligence. 34 personas, 49 commands, 51 skills. Run /octo:setup."
 # We preserve the feature summary but regenerate the counts
-FEATURE_SUMMARY=$(echo "$CURRENT_DESC" | sed -E 's/^v[0-9]+\.[0-9]+\.[0-9]+ - //' | sed -E 's/\. [0-9]+ personas,.*//')
+FEATURE_SUMMARY=$(echo "$CURRENT_DESC" | sed -E 's/^v[0-9]+\.[0-9]+\.[0-9]+ - //' | sed -E 's/[.,] [0-9]+ personas,.*//')
 
 # Build expected description
 EXPECTED_DESC="v${VERSION} - ${FEATURE_SUMMARY}. ${PERSONA_COUNT} personas, ${COMMAND_COUNT} commands, ${SKILL_COUNT} skills. Run /octo:setup."
