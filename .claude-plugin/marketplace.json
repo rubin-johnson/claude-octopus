@@ -11,8 +11,8 @@
     {
       "name": "octo",
       "source": "./",
-      "description": "v9.7.2 - Smart HUD with context-aware columns and macOS compatibility fix. Auto-detects OAuth subscription, shows columns contextually (Cache, Session, Changes, Tokens). Octo brand column with version and effort level. 32 personas, 40 commands, 50 skills. Run /octo:setup.",
-      "version": "9.7.2",
+      "description": "v9.7.3 - Security hardening: atomic credential writes, python injection fix, /tmp glob removal, 10 hooks with timeout guards, umask 0177 bridge files. Smart HUD, Octo brand column. 32 personas, 40 commands, 50 skills. Run /octo:setup.",
+      "version": "9.7.3",
       "author": {
         "name": "nyldn"
       },
