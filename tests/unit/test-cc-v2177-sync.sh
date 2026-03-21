@@ -6,15 +6,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ORCH_MAIN="$PROJECT_ROOT/scripts/orchestrate.sh"
-ORCH_LIB="$PROJECT_ROOT/scripts/lib/providers.sh"
-# Combined search target (provider functions extracted to lib/ in v9.7.7)
+# Combined search target (functions decomposed to lib/ in v9.7.7+)
 ORCH=$(mktemp)
-trap "rm -f "$ORCH"" EXIT
-cat "$ORCH_LIB" "$ORCH_MAIN" > "$ORCH"
-# Support grepping across orchestrate.sh + lib/*.sh
-_ORCH_ALL_TMP=$(mktemp)
-cat "$ORCH" "$PROJECT_ROOT/scripts/lib/"*.sh 2>/dev/null > "$_ORCH_ALL_TMP"
-trap 'rm -f "$_ORCH_ALL_TMP"' EXIT
+trap 'rm -f "$ORCH"' EXIT
+cat "$ORCH_MAIN" "$PROJECT_ROOT/scripts/lib/"*.sh > "$ORCH" 2>/dev/null
 
 TEST_COUNT=0; PASS_COUNT=0; FAIL_COUNT=0
 pass() { TEST_COUNT=$((TEST_COUNT+1)); PASS_COUNT=$((PASS_COUNT+1)); echo "PASS: $1"; }
@@ -47,7 +42,8 @@ else
     fail "v2.1.77 detection block exists" "no version_compare for 2.1.77"
 fi
 
-v2177_block=$(grep -A20 'version_compare.*2\.1\.77' "$ORCH" | head -20)
+# Use providers.sh specifically for detection block
+v2177_block=$(grep -A20 'version_compare.*2\.1\.77' "$PROJECT_ROOT/scripts/lib/providers.sh" | head -20)
 
 for flag in SUPPORTS_ALLOW_READ_SANDBOX SUPPORTS_COPY_INDEX \
             SUPPORTS_COMPOUND_BASH_PERMISSION_FIX SUPPORTS_RESUME_TRUNCATION_FIX \

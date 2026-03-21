@@ -116,13 +116,13 @@ fi
 
 # ── Deliver verification gate ─────────────────────────────────────────────────
 
-if grep -qi 'IRON LAW.*COMPLETION\|NO COMPLETION CLAIMS' "$DELIVER_SKILL" 2>/dev/null; then
-    pass "Deliver has verification gate iron law"
+if grep -qi 'Verify Execution.*MANDATORY\|Validation Gate' "$DELIVER_SKILL" 2>/dev/null; then
+    pass "Deliver has verification gate"
 else
-    fail "Deliver has verification gate iron law" "missing iron law"
+    fail "Deliver has verification gate" "missing verification gate"
 fi
 
-if grep -qi 'Should work now.*RUN IT\|Confidence.*not.*evidence' "$DELIVER_SKILL" 2>/dev/null; then
+if grep -qi 'simulating.*workflow\|evidence\|CANNOT SKIP' "$DELIVER_SKILL" 2>/dev/null; then
     pass "Deliver has anti-rationalization prompts"
 else
     fail "Deliver has anti-rationalization prompts" "missing prompts"

@@ -28,12 +28,17 @@ export const SKILL_REGISTRY: SkillRegistryEntry[] = [
   { name: "skill-code-review", description: "Expert multi-AI code review with quality and security analysis", type: "skill", file: "skill-code-review.md" },
   { name: "skill-content-pipeline", description: "Extract patterns and anatomy from URLs — use to reverse-engineer content strategies from live pages", type: "skill", file: "skill-content-pipeline.md" },
   { name: "skill-context-detection", description: "Auto-detect work context (Dev vs Knowledge) for workflow tailoring", type: "skill", file: "skill-context-detection.md" },
+  { name: "skill-copilot-provider", description: "GitHub Copilot integration roadmap — currently aspirational, not wired as a runtime provider", type: "skill", file: "skill-copilot-provider.md" },
+  { name: "skill-cost-projections", description: "Project remaining workflow cost from per-phase averages — warns on budget ceiling overruns", type: "skill", file: "skill-cost-projections.md" },
+  { name: "skill-coverage-audit", description: "Trace codepaths in diffs, map against tests, auto-generate missing coverage", type: "skill", file: "skill-coverage-audit.md" },
   { name: "skill-debate", description: "Structured four-way AI debates between Claude, Sonnet, Gemini, and Codex", type: "skill", file: "skill-debate.md" },
   { name: "skill-debug", description: "Debug issues methodically — use when stuck on errors, test failures, or unexpected behavior", type: "skill", file: "skill-debug.md" },
   { name: "skill-decision-support", description: "Present options with trade-offs for informed decision-making", type: "skill", file: "skill-decision-support.md" },
   { name: "skill-deck", description: "Generate slide decks from briefs with optional multi-AI research", type: "skill", file: "skill-deck.md" },
   { name: "octopus-research", description: "Thorough research across multiple sources — use for complex topics needing broad synthesis", type: "skill", file: "skill-deep-research.md" },
+  { name: "skill-design-lineage", description: "Persist design documents with branch tracking, revision chains, and cross-session discovery", type: "skill", file: "skill-design-lineage.md" },
   { name: "skill-doc-delivery", description: "Convert markdown to DOCX, PPTX, XLSX office documents", type: "skill", file: "skill-doc-delivery.md" },
+  { name: "skill-doc-sync", description: "Post-ship doc sync across project markdown. Use when: \"sync docs\", \"update docs\", \"document changes\", \"release notes\".", type: "skill", file: "skill-doc-sync.md" },
   { name: "skill-doctor", description: "Environment diagnostics — check providers, auth, config, hooks, scheduler, and more", type: "skill", file: "skill-doctor.md" },
   { name: "skill-factory", description: "Run a full build-and-ship pipeline from a spec — use for hands-off project generation", type: "skill", file: "skill-factory.md" },
   { name: "skill-finish-branch", description: "Wrap up a branch — run tests, create PR, merge or discard — use when implementation is done", type: "skill", file: "skill-finish-branch.md" },
@@ -64,6 +69,7 @@ export const SKILL_REGISTRY: SkillRegistryEntry[] = [
   { name: "brainstorm", description: "Start a creative thought partner brainstorming session", type: "command", file: "brainstorm.md" },
   { name: "careful", description: "Activate destructive command warnings for the session", type: "command", file: "careful.md" },
   { name: "claw", description: "OpenClaw instance administration — manage hosts across macOS, Ubuntu/Debian, Docker, OCI, and Proxmox", type: "command", file: "claw.md" },
+  { name: "costs", description: "Show cost breakdown by provider and workflow for the current session", type: "command", file: "costs.md" },
   { name: "debate", description: "AI Debate Hub - Structured four-way debates between Claude, Sonnet, Gemini, and Codex", type: "command", file: "debate.md" },
   { name: "debug", description: "Systematic debugging with methodical problem investigation", type: "command", file: "debug.md" },
   { name: "deck", description: "Generate slide deck presentations from briefs or research", type: "command", file: "deck.md" },
@@ -80,6 +86,7 @@ export const SKILL_REGISTRY: SkillRegistryEntry[] = [
   { name: "factory", description: "Dark Factory Mode - Spec-in, software-out autonomous pipeline", type: "command", file: "factory.md" },
   { name: "freeze", description: "Restrict file edits to a specific directory boundary", type: "command", file: "freeze.md" },
   { name: "guard", description: "Activate both careful mode and freeze mode together", type: "command", file: "guard.md" },
+  { name: "history", description: "Query past workflow results — filter by workflow type, date, or provider", type: "command", file: "history.md" },
   { name: "km", description: "Switch to Knowledge Work mode (or toggle with off)", type: "command", file: "km.md" },
   { name: "loop", description: "Execute tasks in loops with conditions, iterative improvements until goals are met", type: "command", file: "loop.md" },
   { name: "meta-prompt", description: "Generate an optimized prompt for any task using meta-prompting techniques", type: "command", file: "meta-prompt.md" },
@@ -94,6 +101,7 @@ export const SKILL_REGISTRY: SkillRegistryEntry[] = [
   { name: "quick", description: "Quick execution mode for ad-hoc tasks without full workflow overhead", type: "command", file: "quick.md" },
   { name: "research", description: "Deep research with multi-source synthesis and comprehensive analysis", type: "command", file: "research.md" },
   { name: "resume", description: "Resume a previous agent by ID — continue an interrupted task where it left off", type: "command", file: "resume.md" },
+  { name: "retro", description: "Generate engineering retrospectives from git history with trends and team analysis", type: "command", file: "retro.md" },
   { name: "review", description: "Expert multi-LLM code review with inline PR comments — competes with CC Code Review", type: "command", file: "review.md" },
   { name: "schedule", description: "Manage scheduled workflow jobs (add via wizard, dashboard, list, remove, enable, disable, logs)", type: "command", file: "schedule.md" },
   { name: "scheduler", description: "Manage the scheduled workflow runner daemon (start/stop/status)", type: "command", file: "scheduler.md" },
@@ -106,4 +114,4 @@ export const SKILL_REGISTRY: SkillRegistryEntry[] = [
   { name: "unfreeze", description: "Remove freeze mode edit restriction", type: "command", file: "unfreeze.md" },
 ];
 
-export const REGISTRY_COUNT = 89;
+export const REGISTRY_COUNT = 97;

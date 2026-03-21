@@ -6,11 +6,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ORCH_MAIN="$PROJECT_ROOT/scripts/orchestrate.sh"
-ORCH_LIB="$PROJECT_ROOT/scripts/lib/providers.sh"
-# Combined search target (provider functions extracted to lib/ in v9.7.7)
+# Combined search target (functions decomposed to lib/ in v9.7.7+)
 ORCH=$(mktemp)
-trap "rm -f "$ORCH"" EXIT
-cat "$ORCH_LIB" "$ORCH_MAIN" > "$ORCH"
+trap 'rm -f "$ORCH"' EXIT
+cat "$ORCH_MAIN" "$PROJECT_ROOT/scripts/lib/"*.sh > "$ORCH" 2>/dev/null
 
 TEST_COUNT=0; PASS_COUNT=0; FAIL_COUNT=0
 pass() { TEST_COUNT=$((TEST_COUNT+1)); PASS_COUNT=$((PASS_COUNT+1)); echo "PASS: $1"; }
@@ -36,7 +35,8 @@ else
     fail "v2.1.76 detection block exists" "no version_compare for 2.1.76"
 fi
 
-v2176_block=$(grep -A15 'version_compare.*2\.1\.76' "$ORCH" | head -15)
+# Use providers.sh specifically for detection block (doctor.sh also references v2.1.76)
+v2176_block=$(grep -A15 'version_compare.*2\.1\.76' "$PROJECT_ROOT/scripts/lib/providers.sh" | head -15)
 
 for flag in SUPPORTS_MCP_ELICITATION \
             SUPPORTS_WORKTREE_SPARSE_PATHS \

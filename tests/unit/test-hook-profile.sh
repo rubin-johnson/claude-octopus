@@ -131,11 +131,12 @@ OCTO_HOOK_PROFILE=strict OCTO_DISABLED_HOOKS="session-start-memory,octopus-statu
 
 # ── get_hook_profile default ─────────────────────────────────────────────────
 
+# Default profile renamed from "standard" to "balanced" in v9.7+
 unset OCTO_HOOK_PROFILE
-if [[ "$(get_hook_profile)" == "standard" ]]; then
-    pass "get_hook_profile defaults to standard"
+if [[ "$(get_hook_profile)" == "balanced" ]]; then
+    pass "get_hook_profile defaults to balanced"
 else
-    fail "get_hook_profile defaults to standard" "got: $(get_hook_profile)"
+    fail "get_hook_profile defaults to balanced" "got: $(get_hook_profile)"
 fi
 
 # ── skill-doctor.md mentions hook profile ────────────────────────────────────

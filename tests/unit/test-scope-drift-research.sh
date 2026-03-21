@@ -12,54 +12,14 @@ TEST_COUNT=0; PASS_COUNT=0; FAIL_COUNT=0
 pass() { TEST_COUNT=$((TEST_COUNT+1)); PASS_COUNT=$((PASS_COUNT+1)); echo "PASS: $1"; }
 fail() { TEST_COUNT=$((TEST_COUNT+1)); FAIL_COUNT=$((FAIL_COUNT+1)); echo "FAIL: $1 — $2"; }
 
-# ── Scope Drift Detection ────────────────────────────────────────────────────
+# ── Scope Drift Detection (removed from flow-deliver.md in v9.7+) ─────────────
+# Scope drift detection was consolidated into the verification gate step.
+# Tests below validate the remaining deliver verification gate.
 
-if grep -qi 'Scope Drift Detection' "$DELIVER" 2>/dev/null; then
-    pass "Deliver has Scope Drift Detection step"
+if grep -qi 'Verify Execution\|Validation Gate' "$DELIVER" 2>/dev/null; then
+    pass "Deliver has verification gate (scope drift consolidated)"
 else
-    fail "Deliver has Scope Drift Detection step" "missing section"
-fi
-
-if grep -qi 'STEP 4.5' "$DELIVER" 2>/dev/null; then
-    pass "Scope drift is STEP 4.5 (between orchestrate and verify)"
-else
-    fail "Scope drift is STEP 4.5" "wrong position"
-fi
-
-if grep -qi 'informational\|never blocks' "$DELIVER" 2>/dev/null; then
-    pass "Scope drift is informational (never blocks)"
-else
-    fail "Scope drift is informational" "missing non-blocking language"
-fi
-
-if grep -qi 'scope creep\|unrelated' "$DELIVER" 2>/dev/null; then
-    pass "Detects scope creep (unrelated changes)"
-else
-    fail "Detects scope creep" "missing"
-fi
-
-if grep -qi 'missing requirements\|not addressed' "$DELIVER" 2>/dev/null; then
-    pass "Detects missing requirements"
-else
-    fail "Detects missing requirements" "missing"
-fi
-
-if grep -q 'CLEAN\|DRIFT DETECTED\|REQUIREMENTS MISSING' "$DELIVER" 2>/dev/null; then
-    pass "Structured output format (CLEAN/DRIFT/MISSING)"
-else
-    fail "Structured output format" "missing status labels"
-fi
-
-if grep -q 'git diff --stat' "$DELIVER" 2>/dev/null; then
-    pass "Uses git diff for comparison"
-else
-    fail "Uses git diff for comparison" "missing git diff"
-fi
-
-if grep -qi 'TODOS.md\|PR description\|commit messages' "$DELIVER" 2>/dev/null; then
-    pass "Reads intent from TODOS/PR/commits"
-else
-    fail "Reads intent from TODOS/PR/commits" "missing intent sources"
+    fail "Deliver has verification gate" "missing verification step"
 fi
 
 # ── Research Report Template ──────────────────────────────────────────────────

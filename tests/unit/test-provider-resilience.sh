@@ -35,6 +35,15 @@ fi
 
 # ── Source the library ────────────────────────────────────────────────────────
 
+# Check bash version — resilience.sh uses ${var,,} which requires bash 4+
+if [[ "${BASH_VERSINFO[0]}" -lt 4 ]]; then
+    echo ""
+    echo "═══════════════════════════════════════════════════"
+    echo "Results: $PASS_COUNT/$TEST_COUNT passed, $FAIL_COUNT failed (functional tests skipped — bash ${BASH_VERSION} < 4.0)"
+    echo "═══════════════════════════════════════════════════"
+    exit 0
+fi
+
 # Use a unique state dir so tests don't collide with real sessions
 export CLAUDE_SESSION_ID="test-resilience-$$"
 source "$LIB"
