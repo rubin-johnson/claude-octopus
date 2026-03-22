@@ -129,6 +129,10 @@ HEADER
             return 0
         else
             echo "ERROR: OpenClaw registry is out of date. Run: ./scripts/build-openclaw.sh" >&2
+            if [[ -f "$registry_file" ]]; then
+                echo "Diff:" >&2
+                diff -u "$registry_file" "$tmp_file" >&2 || true
+            fi
             rm "$tmp_file"
             return 1
         fi
