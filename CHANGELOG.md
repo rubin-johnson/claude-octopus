@@ -1,3 +1,37 @@
+## [9.9.3] - 2026-03-22
+
+### Fixed
+
+- **Copilot dispatch broken end-to-end** (#206, PR #207 by @PavelPancocha): 5 bugs that prevented Copilot from ever running in workflows despite detection:
+  1. `dispatch.sh` returned bash function name (`copilot_execute`) instead of executable — `timeout` can't exec functions. Fixed: `copilot --no-ask-user`.
+  2. `validate_agent_command()` in utils.sh rejected `copilot` — not in allowlist. Fixed: added `copilot` pattern.
+  3. `embrace.sh` never included Copilot in dispatch strategies — only checked codex/gemini. Fixed: added `has_copilot` detection + 3/4-provider strategies.
+  4. Headless `-p ""` stdin flag only appended for `gemini*` agents — Copilot needs it too. Fixed: extended condition to `copilot*`.
+  5. Provider metrics tracking fell through to wildcard for copilot/ollama. Fixed: added explicit cases.
+- **Stray `}` at EOF in workflows.sh** — caused syntax error when sourced (CodeRabbit catch from PR #207).
+- **Codex smoke test timeout too short** — hardcoded 10s, but MCP initialization takes 20-40s. Now configurable via `OCTOPUS_CODEX_SMOKE_TIMEOUT` (default: 45s).
+
+### Changed
+
+- **README tagline** — "turns one model into three" → "orchestrates seven AI providers"
+- **SECURITY.md** — supported versions 4.x → 9.x, fixed package names, added Copilot/Ollama to deps
+- **CONTRIBUTING.md** — removed dead Python/coordinator.py refs, added real test commands, bash 3.x compat
+- **PR template** — removed dead `coordinator.py` check, added real test/registry/version-bump checklist
+- **Issue templates** — upgraded from markdown to YAML forms with provider dropdowns and version fields
+
+### Added
+
+- **CODE_OF_CONDUCT.md** — Contributor Covenant v2.1
+- **Repo topics** — 12 discoverable tags (claude-code, multi-ai, ai-orchestration, etc.)
+
+### Removed
+
+- **39 stale remote branches** — all merged/orphaned branches cleaned up
+- **Wiki and Projects tabs** — disabled (unused)
+- **Discussions** — disabled
+
+---
+
 ## [9.9.2] - 2026-03-22
 
 ### Changed
