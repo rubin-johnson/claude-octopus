@@ -162,7 +162,7 @@ export OCTOPUS_COST_MODE=standard
 |------------|-------|---------|----------|------|
 | `openrouter-glm5` | `z-ai/glm-5` | 203K | Code review specialist | $0.80/$2.56 per MTok |
 | `openrouter-kimi` | `moonshotai/kimi-k2.5` | **262K** | Research, multimodal | $0.45/$2.25 per MTok |
-| `openrouter-deepseek` | `deepseek/deepseek-r1` | 164K | Deep reasoning | $0.70/$2.50 per MTok |
+| `openrouter-deepseek` | `deepseek/deepseek-r1-0528` | 164K | Deep reasoning | $0.70/$2.50 per MTok |
 
 Requires `OPENROUTER_API_KEY` to be set.
 

@@ -41,7 +41,7 @@ get_model_catalog() {
         # OpenRouter
         z-ai/glm-5)             echo "203|yes|no|no|openrouter|standard|active" ;;
         moonshotai/kimi-k2.5)   echo "262|yes|yes|no|openrouter|standard|active" ;;
-        deepseek/deepseek-r1)   echo "164|yes|no|yes|openrouter|standard|active" ;;
+        deepseek/deepseek-r1-0528) echo "164|yes|no|yes|openrouter|standard|active" ;;
         # Perplexity
         sonar-pro)              echo "128|no|no|no|perplexity|standard|active" ;;
         sonar)                  echo "128|no|no|no|perplexity|budget|active" ;;
@@ -102,7 +102,7 @@ list_models() {
         o3 o3-pro o3-mini
         gemini-3.1-pro-preview gemini-3-flash-preview gemini-3-pro-image-preview
         claude-sonnet-4.6 claude-opus-4.6 claude-opus-4.6-fast
-        z-ai/glm-5 moonshotai/kimi-k2.5 deepseek/deepseek-r1
+        z-ai/glm-5 moonshotai/kimi-k2.5 deepseek/deepseek-r1-0528
         sonar-pro sonar
     )
 

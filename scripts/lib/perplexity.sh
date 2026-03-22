@@ -1,24 +1,13 @@
 #!/usr/bin/env bash
 # Perplexity & OpenRouter API execution
 # Extracted from orchestrate.sh — v9.7.5
+# Hardened in v9.7.8: timeout, HTTP status handling, 429 retry, dedup
 
-# OpenRouter agent wrapper for spawn_agent compatibility
-openrouter_execute() {
-    local prompt="$1"
-    local task_type="${2:-general}"
-    local complexity="${3:-2}"
-    local output_file="${4:-}"
-
-    if [[ -n "$output_file" ]]; then
-        execute_openrouter "$prompt" "$task_type" "$complexity" > "$output_file" 2>&1
-    else
-        execute_openrouter "$prompt" "$task_type" "$complexity"
-    fi
-}
-
-# OpenRouter model-specific agent wrapper (v8.11.0)
+# OpenRouter model-specific agent wrapper (v8.11.0, hardened v9.7.8)
 # Used by openrouter-glm5, openrouter-kimi, openrouter-deepseek
 # First arg is the fixed model ID, remaining args are prompt/task/complexity/output
+# Features: --max-time 60, HTTP status code handling (429 retry w/ Retry-After,
+#           502/503/524 error reporting)
 openrouter_execute_model() {
     local model="$1"
     local prompt="$2"
@@ -31,7 +20,7 @@ openrouter_execute_model() {
         return 1
     fi
 
-    [[ "$VERBOSE" == "true" ]] && log DEBUG "OpenRouter model-specific request: model=$model" || true
+    [[ "$VERBOSE" == "true" ]] && log DEBUG "OpenRouter request: model=$model" || true
 
     # Build JSON payload
     local escaped_prompt
@@ -48,14 +37,81 @@ openrouter_execute_model() {
 EOF
 )
 
-    local response
-    response=$(curl -s -X POST "https://openrouter.ai/api/v1/chat/completions" \
-        -H "Authorization: Bearer ${OPENROUTER_API_KEY}" \
-        -H "Content-Type: application/json" \
-        -H "Connection: keep-alive" \
-        -H "HTTP-Referer: https://github.com/nyldn/claude-octopus" \
-        -H "X-Title: Claude Octopus" \
-        -d "$payload")
+    # Temporary file for response headers (needed for Retry-After parsing)
+    local header_file
+    header_file=$(mktemp "${TMPDIR:-/tmp}/octo-or-headers.XXXXXX")
+
+    local raw_response http_code response
+    local attempt=0
+    local max_attempts=2  # Initial + 1 retry on 429
+
+    while (( attempt < max_attempts )); do
+        raw_response=$(curl -s -X POST "https://openrouter.ai/api/v1/chat/completions" \
+            --max-time 60 \
+            -w "%{http_code}" \
+            -D "$header_file" \
+            -H "Authorization: Bearer ${OPENROUTER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -H "Connection: keep-alive" \
+            -H "HTTP-Referer: https://github.com/nyldn/claude-octopus" \
+            -H "X-Title: Claude Octopus" \
+            -d "$payload") || {
+            log ERROR "OpenRouter curl failed (timeout or network error, model=$model)"
+            rm -f "$header_file"
+            return 1
+        }
+
+        # Split response body from HTTP status code (last 3 chars)
+        http_code="${raw_response: -3}"
+        response="${raw_response:0:${#raw_response}-3}"
+
+        case "$http_code" in
+            200) break ;;  # Success
+            429)
+                if (( attempt + 1 >= max_attempts )); then
+                    log ERROR "OpenRouter rate limited (429) after retry (model=$model)"
+                    rm -f "$header_file"
+                    return 1
+                fi
+                # Parse Retry-After header (seconds); default to 5s if absent
+                local retry_after=5
+                local header_val
+                header_val=$(grep -i '^retry-after:' "$header_file" 2>/dev/null | tr -d '\r' | sed 's/[^:]*: *//' | head -n1) || true
+                if [[ -n "$header_val" && "$header_val" =~ ^[0-9]+$ ]]; then
+                    retry_after="$header_val"
+                    # Cap at 30s to avoid hanging
+                    (( retry_after > 30 )) && retry_after=30
+                fi
+                log WARN "OpenRouter rate limited (429), retrying in ${retry_after}s (model=$model)"
+                sleep "$retry_after"
+                ;;
+            502)
+                log ERROR "OpenRouter bad gateway (502) — upstream provider down (model=$model)"
+                rm -f "$header_file"
+                return 1
+                ;;
+            503)
+                log ERROR "OpenRouter service unavailable (503) — model may be overloaded (model=$model)"
+                rm -f "$header_file"
+                return 1
+                ;;
+            524)
+                log ERROR "OpenRouter timeout (524) — upstream request took too long (model=$model)"
+                rm -f "$header_file"
+                return 1
+                ;;
+            *)
+                if [[ "${http_code:0:1}" != "2" ]]; then
+                    log ERROR "OpenRouter HTTP $http_code (model=$model)"
+                    rm -f "$header_file"
+                    return 1
+                fi
+                break ;;
+        esac
+        (( attempt++ ))
+    done
+
+    rm -f "$header_file"
 
     # Extract content from response
     local content=""
@@ -79,6 +135,20 @@ EOF
             echo "$result"
         fi
     fi
+}
+
+# OpenRouter agent wrapper for spawn_agent compatibility (v9.7.8: delegates to openrouter_execute_model)
+# Resolves model from task_type/complexity, then calls the core implementation
+openrouter_execute() {
+    local prompt="$1"
+    local task_type="${2:-general}"
+    local complexity="${3:-2}"
+    local output_file="${4:-}"
+
+    local model
+    model=$(get_openrouter_model "$task_type" "$complexity")
+
+    openrouter_execute_model "$model" "$prompt" "$task_type" "$complexity" "$output_file"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════

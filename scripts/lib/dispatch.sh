@@ -85,7 +85,7 @@ get_agent_command() {
         openrouter) echo "openrouter_execute" ;;                 # OpenRouter API (v4.8)
         openrouter-glm5) echo "openrouter_execute_model z-ai/glm-5" ;;           # v8.11.0: GLM-5 via OpenRouter
         openrouter-kimi) echo "openrouter_execute_model moonshotai/kimi-k2.5" ;; # v8.11.0: Kimi K2.5 via OpenRouter
-        openrouter-deepseek) echo "openrouter_execute_model deepseek/deepseek-r1" ;; # v8.11.0: DeepSeek R1 via OpenRouter
+        openrouter-deepseek) echo "openrouter_execute_model deepseek/deepseek-r1-0528" ;; # v8.11.0: DeepSeek R1 via OpenRouter
         perplexity|perplexity-fast)  # v8.24.0: Perplexity Sonar — web-grounded research (Issue #22)
             model=$(get_agent_model "$agent_type" "$phase" "$role")
             echo "perplexity_execute $model"
@@ -96,6 +96,9 @@ get_agent_command() {
         ollama|ollama-*)  # v9.9.0: Ollama local LLM — ollama run
             model=$(get_agent_model "$agent_type" "$phase" "$role")
             echo "ollama run $model"
+            ;;
+        qwen|qwen-research)  # v9.10.0: Qwen CLI — fork of Gemini CLI (free tier)
+            echo "env NODE_NO_WARNINGS=1 qwen -o text --approval-mode yolo"
             ;;
         *) return 1 ;;
     esac

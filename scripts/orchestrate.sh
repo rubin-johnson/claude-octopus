@@ -102,6 +102,7 @@ source "${SCRIPT_DIR}/lib/context.sh" 2>/dev/null || true
 # Perplexity & OpenRouter API execution (v9.7.5 extraction)
 source "${SCRIPT_DIR}/lib/perplexity.sh" 2>/dev/null || true
 source "${SCRIPT_DIR}/lib/copilot.sh" 2>/dev/null || true
+source "${SCRIPT_DIR}/lib/qwen.sh" 2>/dev/null || true
 
 # Cost tracking & usage reporting (v9.7.5 extraction)
 source "${SCRIPT_DIR}/lib/cost.sh" 2>/dev/null || true
@@ -408,7 +409,7 @@ CODEX_SUBAGENT_PREAMBLE="IMPORTANT: You are running as a non-interactive subagen
 
 "
 
-AVAILABLE_AGENTS="codex codex-standard codex-max codex-mini codex-general codex-spark codex-reasoning codex-large-context gemini gemini-fast gemini-image codex-review claude claude-sonnet claude-opus claude-opus-fast openrouter openrouter-glm5 openrouter-kimi openrouter-deepseek perplexity perplexity-fast ollama copilot copilot-research"
+AVAILABLE_AGENTS="codex codex-standard codex-max codex-mini codex-general codex-spark codex-reasoning codex-large-context gemini gemini-fast gemini-image codex-review claude claude-sonnet claude-opus claude-opus-fast openrouter openrouter-glm5 openrouter-kimi openrouter-deepseek perplexity perplexity-fast ollama copilot copilot-research qwen qwen-research"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # USAGE TRACKING & COST REPORTING (v4.1)
@@ -452,7 +453,7 @@ get_model_pricing() {
         # OpenRouter models (v8.11.0)
         z-ai/glm-5)             echo "0.80:2.56" ;;    # GLM-5: code review specialist
         moonshotai/kimi-k2.5)   echo "0.45:2.25" ;;    # Kimi K2.5: research, 262K context
-        deepseek/deepseek-r1)   echo "0.70:2.50" ;;    # DeepSeek R1: visible reasoning traces
+        deepseek/deepseek-r1-0528) echo "0.70:2.50" ;; # DeepSeek R1: visible reasoning traces
         # Perplexity Sonar models (v8.24.0 - Issue #22)
         sonar-pro)              echo "3.00:15.00" ;;   # Sonar Pro: deep web research
         sonar)                  echo "1.00:1.00" ;;    # Sonar: fast web search
@@ -504,7 +505,7 @@ find_capable_fallback() {
         claude)
             candidates=(claude-sonnet-4.6 claude-opus-4.6) ;;
         openrouter)
-            candidates=(z-ai/glm-5 moonshotai/kimi-k2.5 deepseek/deepseek-r1) ;;
+            candidates=(z-ai/glm-5 moonshotai/kimi-k2.5 deepseek/deepseek-r1-0528) ;;
         perplexity)
             candidates=(sonar sonar-pro) ;;
     esac
@@ -2132,6 +2133,19 @@ detect_providers() {
         result="${result}copilot:${copilot_auth} "
     fi
 
+    # Detect Qwen CLI (v9.10.0 — free tier)
+    if command -v qwen &>/dev/null; then
+        local qwen_auth="none"
+        if [[ -f "${HOME}/.qwen/oauth_creds.json" ]]; then
+            qwen_auth="oauth"
+        elif [[ -f "${HOME}/.qwen/config.json" ]]; then
+            qwen_auth="config"
+        elif [[ -n "${QWEN_API_KEY:-}" ]]; then
+            qwen_auth="api-key"
+        fi
+        result="${result}qwen:${qwen_auth} "
+    fi
+
     # Fail gracefully with helpful message if no providers found
     if [[ -z "$result" ]]; then
         log WARN "No AI providers detected. Install at least one:"
@@ -2141,6 +2155,7 @@ detect_providers() {
         log WARN "  - OpenRouter: Set OPENROUTER_API_KEY environment variable"
         log WARN "  - Copilot: brew install copilot-cli (zero additional cost)"
         log WARN "  - Ollama: brew install ollama (free local LLM)"
+        log WARN "  - Qwen: npm i -g @qwen-code/qwen-code (free tier)"
         echo "none:unavailable"
         return 1
     fi

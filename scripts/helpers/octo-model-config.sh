@@ -307,7 +307,7 @@ cmd_models() {
         "sonar|128|no|no|no|perplexity|budget|active"
         "z-ai/glm-5|203|yes|no|no|openrouter|standard|active"
         "moonshotai/kimi-k2.5|262|yes|yes|no|openrouter|standard|active"
-        "deepseek/deepseek-r1|164|yes|no|yes|openrouter|standard|active"
+        "deepseek/deepseek-r1-0528|164|yes|no|yes|openrouter|standard|active"
     )
 
     for entry in "${models[@]}"; do
