@@ -57,22 +57,38 @@ get_agent_command() {
         gemini|gemini-fast|gemini-image)
             model=$(get_agent_model "$agent_type" "$phase" "$role")
             # v8.10.0: Fixed headless mode (Issue #25)
-            # Prompt delivered via stdin by callers (avoids OS arg limits)
-            # Callers add -p "" for headless mode trigger
-            # -o text: clean output, --approval-mode yolo: auto-accept (replaces deprecated -y)
+            # v9.9.3: .toml custom commands for persona management
+            # Prompt delivered via stdin, persona from .toml command or inline
+            # -o text: clean output, --approval-mode yolo: auto-accept
             # v8.32.0: GEMINI_FORCE_FILE_STORAGE=true on macOS avoids Keychain prompts
-            # when calling Gemini CLI from bash subprocesses (OAuth still works)
             local gemini_env="env NODE_NO_WARNINGS=1"
             if [[ "$OCTOPUS_PLATFORM" == "Darwin" && -z "${GEMINI_API_KEY:-}" ]]; then
                 gemini_env="env NODE_NO_WARNINGS=1 GEMINI_FORCE_FILE_STORAGE=true"
             fi
+            # v9.9.3: Map role to .toml custom command if available
+            # Persona embedded in .gemini/commands/octo/*.toml — saves ~200 tokens/spawn
+            # When a .toml command is available, -p "/octo:X" both triggers headless AND loads persona
+            local gemini_toml=""
+            if [[ -d "${PLUGIN_ROOT:-.}/.gemini/commands/octo" ]]; then
+                case "${role:-}" in
+                    researcher|explorer)       gemini_toml="/octo:research" ;;
+                    reviewer|security)         gemini_toml="/octo:review" ;;
+                    architect|planner)         gemini_toml="/octo:architect" ;;
+                    implementer|developer)     gemini_toml="/octo:implement" ;;
+                esac
+            fi
+            # Build the -p flag: use .toml command if matched, empty string for stdin-only
+            local headless_flag="-p \"\""
+            if [[ -n "$gemini_toml" ]]; then
+                headless_flag="-p \"${gemini_toml}\""
+            fi
             case "${OCTOPUS_GEMINI_SANDBOX:-headless}" in
                 headless|auto-accept)
-                    echo "${gemini_env} gemini -o text --approval-mode yolo -m ${model}" ;;
+                    echo "${gemini_env} gemini -o text --approval-mode yolo -m ${model} ${headless_flag}" ;;
                 interactive|prompt-mode)
                     echo "${gemini_env} gemini -m ${model}" ;;
                 *)
-                    echo "${gemini_env} gemini -o text --approval-mode yolo -m ${model}" ;;
+                    echo "${gemini_env} gemini -o text --approval-mode yolo -m ${model} ${headless_flag}" ;;
             esac
             ;;
         codex-review) echo "codex exec review" ;; # Code review mode (no sandbox support)
