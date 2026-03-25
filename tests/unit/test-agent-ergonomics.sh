@@ -51,7 +51,7 @@ assert_contains "$(grep -c 'USER_AGENTS_DIR' "$ALL_SRC" 2>/dev/null || echo 0)" 
 assert_contains "$(grep 'USER_AGENTS_DIR' "$ALL_SRC" | grep 'claude/agents' | head -3)" \
   "claude/agents" "USER_AGENTS_DIR: points to ~/.claude/agents"
 
-assert_contains "$(grep -A10 'get_agent_description' "$ALL_SRC" | head -15)" \
+assert_contains "$(grep -A15 'get_agent_description()' "$ALL_SRC" | head -20)" \
   "USER_AGENTS_DIR" "get_agent_description: checks USER_AGENTS_DIR fallback"
 
 # ── agent-resume dispatch ────────────────────────────────────────────────────

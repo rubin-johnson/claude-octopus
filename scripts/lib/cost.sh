@@ -432,9 +432,9 @@ generate_usage_table() {
     ' "$log_file")
 
     local total_calls total_tokens total_cost
-    total_calls=$(echo "$totals" | cut -d'|' -f1)
-    total_tokens=$(echo "$totals" | cut -d'|' -f2)
-    total_cost=$(echo "$totals" | cut -d'|' -f3)
+    total_calls="${totals%%|*}"
+    local _t_rest="${totals#*|}"; total_tokens="${_t_rest%%|*}"
+    local _t_rest2="${totals#*|}"; total_cost="${_t_rest2#*|}"
 
     echo ""
     echo -e "${CYAN}╔════════════════════════════════════════════════════════════════╗${NC}"
@@ -639,9 +639,9 @@ generate_usage_json() {
     ' "$log_file")
 
     local total_calls total_tokens total_cost
-    total_calls=$(echo "$totals" | cut -d'|' -f1)
-    total_tokens=$(echo "$totals" | cut -d'|' -f2)
-    total_cost=$(echo "$totals" | cut -d'|' -f3)
+    total_calls="${totals%%|*}"
+    local _t_rest="${totals#*|}"; total_tokens="${_t_rest%%|*}"
+    local _t_rest2="${totals#*|}"; total_cost="${_t_rest2#*|}"
 
     local session_id
     session_id=$(grep -o '"session_id": "[^"]*"' "$USAGE_FILE" 2>/dev/null | cut -d'"' -f4)
@@ -823,3 +823,48 @@ get_cost_tier_for_subscription() {
     esac
 }
 
+
+# ── Extracted from orchestrate.sh (optimization sweep) ──
+
+get_model_pricing() {
+    local model="$1"
+    case "$model" in
+        # OpenAI GPT-5.x models (v8.39.0: updated to Mar 2026 pricing)
+        gpt-5.4)                echo "2.50:15.00" ;;   # v8.39.0: GPT-5.4 (OAuth + API)
+        gpt-5.4-pro)            echo "30.00:180.00" ;; # v8.39.0: GPT-5.4 Pro (API-key only)
+        gpt-5.3-codex)          echo "1.75:14.00" ;;
+        gpt-5.3-codex-spark)    echo "1.75:14.00" ;;   # Spark - same API price, Pro-only
+        gpt-5.2-codex)          echo "1.75:14.00" ;;
+        gpt-5.1-codex-max)      echo "1.25:10.00" ;;
+        gpt-5.4-mini)       echo "0.25:2.00" ;;    # v8.39.0: Budget (renamed from gpt-5.4-mini)
+        gpt-5.4-mini)     echo "0.25:2.00" ;;    # v8.39.0: Fixed pricing ($0.30/$1.25 → $0.25/$2.00), alias
+        gpt-5)                  echo "1.25:10.00" ;;   # v8.39.0: GPT-5 base
+        gpt-5.2)                echo "1.75:14.00" ;;
+        gpt-5.1)                echo "1.25:10.00" ;;
+        gpt-5-codex)            echo "1.25:10.00" ;;
+        # OpenAI Reasoning models (v8.9.0; v8.39.0: added o3-pro, o3-mini — all API-key only)
+        o3)                     echo "2.00:8.00" ;;
+        o3-pro)                 echo "20.00:80.00" ;;  # v8.39.0: API-key only
+        o3)                echo "1.10:4.40" ;;
+        o3-mini)                echo "1.10:4.40" ;;    # v8.39.0: API-key only
+        gpt-5.4)           echo "2.50:15.00" ;;
+        # Google Gemini 3.0 models
+        gemini-3.1-pro-preview)   echo "2.50:10.00" ;;
+        gemini-3-flash-preview) echo "0.25:1.00" ;;
+        gemini-3-pro-image-preview) echo "5.00:20.00" ;;
+        # Claude models
+        claude-sonnet-4.5)      echo "3.00:15.00" ;;
+        claude-sonnet-4.6)      echo "3.00:15.00" ;;   # v8.17: Sonnet 4.6 (same pricing as 4.5)
+        claude-opus-4.6)        echo "5.00:25.00" ;;
+        claude-opus-4.6-fast)   echo "30.00:150.00" ;;  # v8.4: Fast mode - 6x cost for lower latency
+        # OpenRouter models (v8.11.0)
+        z-ai/glm-5)             echo "0.80:2.56" ;;    # GLM-5: code review specialist
+        moonshotai/kimi-k2.5)   echo "0.45:2.25" ;;    # Kimi K2.5: research, 262K context
+        deepseek/deepseek-r1-0528) echo "0.70:2.50" ;; # DeepSeek R1: visible reasoning traces
+        # Perplexity Sonar models (v8.24.0 - Issue #22)
+        sonar-pro)              echo "3.00:15.00" ;;   # Sonar Pro: deep web research
+        sonar)                  echo "1.00:1.00" ;;    # Sonar: fast web search
+        # Default fallback
+        *)                      echo "1.00:5.00" ;;
+    esac
+}

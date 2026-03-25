@@ -174,7 +174,7 @@ detect_response_mode() {
 
     # Word count heuristics
     local word_count
-    word_count=$(echo "$prompt" | wc -w | tr -d ' ')
+    local _words=($prompt); word_count=${#_words[@]}
 
     if [[ $word_count -lt 10 ]]; then
         echo "direct"
@@ -215,8 +215,8 @@ build_skill_context() {
     [[ -z "$skills" ]] && return
 
     local context=""
-    for skill in $(echo "$skills" | tr ',' ' '); do
-        skill=$(echo "$skill" | tr -d '[:space:]')
+    for skill in ${skills//,/ }; do
+        skill="${skill//[[:space:]]/}"
         local content
         content=$(load_agent_skill_content "$skill")
         if [[ -n "$content" ]]; then
@@ -275,7 +275,7 @@ build_memory_context() {
             # Claude Code stores project memory by path hash
             # Try common locations
             local project_hash
-            project_hash=$(echo "$PROJECT_ROOT" | tr '/' '-')
+            project_hash="${PROJECT_ROOT//\//-}"
             memory_file="${HOME}/.claude/projects/${project_hash}/memory/MEMORY.md"
             if [[ ! -f "$memory_file" ]]; then
                 # Try with leading dash (Claude Code convention)

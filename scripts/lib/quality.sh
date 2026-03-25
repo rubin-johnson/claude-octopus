@@ -937,3 +937,76 @@ get_cross_model_reviewer() {
 # JSON-based routing rules with first-match-wins evaluation.
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
+# ── Extracted from orchestrate.sh ──
+run_project_quality_checks() {
+    local project_dir="${1:-.}"
+    local commands
+    commands=$(detect_project_quality_commands "$project_dir")
+
+    [[ -z "$commands" ]] && { echo "No quality commands detected"; return 0; }
+
+    local passed=0 failed=0 total=0
+    local -a failures=()
+
+    while IFS= read -r cmd; do
+        [[ -z "$cmd" ]] && continue
+        ((total++))
+        if eval "$cmd" &>/dev/null; then
+            ((passed++))
+        else
+            ((failed++))
+            failures+=("$cmd")
+        fi
+    done <<< "$commands"
+
+    echo "Quality checks: $passed/$total passed"
+    if [[ $failed -gt 0 ]]; then
+        echo "Failed:"
+        printf '  - %s\n' "${failures[@]}"
+        return 1
+    fi
+    return 0
+}
+
+detect_project_quality_commands() {
+    local project_dir="${1:-.}"
+    local -a commands=()
+
+    # Node.js / package.json
+    if [[ -f "$project_dir/package.json" ]]; then
+        local scripts
+        scripts=$(jq -r '.scripts // {} | keys[]' "$project_dir/package.json" 2>/dev/null)
+        for script in lint typecheck type-check tsc check; do
+            if [[ $'\n'"$scripts"$'\n' == *$'\n'"$script"$'\n'* ]]; then
+                commands+=("npm run $script")
+            fi
+        done
+    fi
+
+    # Python / pyproject.toml / setup.cfg
+    if [[ -f "$project_dir/pyproject.toml" ]] || [[ -f "$project_dir/setup.cfg" ]]; then
+        command -v ruff &>/dev/null && commands+=("ruff check $project_dir")
+        command -v mypy &>/dev/null && commands+=("mypy $project_dir")
+    fi
+
+    # Rust / Cargo.toml
+    if [[ -f "$project_dir/Cargo.toml" ]]; then
+        commands+=("cargo clippy --quiet" "cargo test --no-run --quiet")
+    fi
+
+    # Go / go.mod
+    if [[ -f "$project_dir/go.mod" ]]; then
+        commands+=("go vet ./...")
+    fi
+
+    # Makefile with lint target
+    if [[ -f "$project_dir/Makefile" ]]; then
+        if grep -q '^lint:' "$project_dir/Makefile" 2>/dev/null; then
+            commands+=("make lint")
+        fi
+    fi
+
+    # Output as newline-separated list
+    printf '%s\n' "${commands[@]}"
+}

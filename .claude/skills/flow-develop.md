@@ -160,6 +160,7 @@ echo "PROVIDER_CHECK_END"
 
 **Use the ACTUAL results below. PROHIBITED: Showing only "🔵 Claude: Available ✓" without listing all providers.**
 
+
 **Display this banner BEFORE orchestrate.sh execution:**
 
 **For Dev Context:**

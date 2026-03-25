@@ -559,3 +559,103 @@ check_all_providers() {
     printf '%s\n' "${results[@]}"
     echo "  ($healthy healthy, $unhealthy unavailable)"
 }
+
+# ── Extracted from orchestrate.sh (optimization sweep) ──
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# OPENROUTER INTEGRATION (v4.8)
+# Universal fallback using OpenRouter API (400+ models)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Select OpenRouter model based on task type
+get_openrouter_model() {
+    local task_type="$1"
+    local complexity="${2:-2}"
+
+    # Apply routing preference suffix
+    local routing_suffix=""
+    if [[ -n "$OPENROUTER_ROUTING_OVERRIDE" ]]; then
+        routing_suffix="$OPENROUTER_ROUTING_OVERRIDE"
+    elif [[ "$PROVIDER_OPENROUTER_ROUTING_PREF" != "default" ]]; then
+        routing_suffix=":${PROVIDER_OPENROUTER_ROUTING_PREF}"
+    fi
+
+    case "$task_type" in
+        coding|review)
+            case "$complexity" in
+                3) echo "anthropic/claude-opus-4-6${routing_suffix}" ;;   # v8.0: Opus for premium
+                1) echo "anthropic/claude-haiku${routing_suffix}" ;;
+                *) echo "anthropic/claude-sonnet-4${routing_suffix}" ;;
+            esac
+            ;;
+        image)
+            echo "google/gemini-2.0-flash${routing_suffix}"
+            ;;
+        research|design)
+            echo "anthropic/claude-sonnet-4${routing_suffix}"
+            ;;
+        *)
+            echo "anthropic/claude-sonnet-4${routing_suffix}"
+            ;;
+    esac
+}
+
+# Execute prompt via OpenRouter API
+execute_openrouter() {
+    local prompt="$1"
+    local task_type="${2:-general}"
+    local complexity="${3:-2}"
+
+    if [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
+        log ERROR "OPENROUTER_API_KEY not set"
+        return 1
+    fi
+
+    local model
+    model=$(get_openrouter_model "$task_type" "$complexity")
+
+    [[ "$VERBOSE" == "true" ]] && log DEBUG "OpenRouter request: model=$model" || true
+
+    # Build JSON payload (properly escape all special characters)
+    local escaped_prompt
+    escaped_prompt=$(json_escape "$prompt")
+
+    local payload
+    payload=$(cat << EOF
+{
+  "model": "$model",
+  "messages": [
+    {"role": "user", "content": "$escaped_prompt"}
+  ]
+}
+EOF
+)
+
+    local response
+    response=$(curl -s -X POST "https://openrouter.ai/api/v1/chat/completions" \
+        -H "Authorization: Bearer ${OPENROUTER_API_KEY}" \
+        -H "Content-Type: application/json" \
+        -H "Connection: keep-alive" \
+        -H "HTTP-Referer: https://github.com/nyldn/claude-octopus" \
+        -H "X-Title: Claude Octopus" \
+        -d "$payload")
+
+    # Extract content from response (fast regex extraction)
+    local content=""
+    if json_extract "$response" "content"; then
+        content="$REPLY"
+    fi
+
+    if [[ -z "$content" ]]; then
+        # Check for error
+        if [[ "$response" =~ \"error\":\{([^\}]*)\} ]]; then
+            log ERROR "OpenRouter error: ${BASH_REMATCH[1]}"
+            return 1
+        fi
+        log WARN "Empty response from OpenRouter"
+        echo "$response"  # Return raw response for debugging
+    else
+        # Unescape the content
+        echo "$content" | sed 's/\\n/\n/g; s/\\t/\t/g; s/\\"/"/g'
+    fi
+}

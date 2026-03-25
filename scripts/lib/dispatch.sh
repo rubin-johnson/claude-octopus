@@ -354,3 +354,50 @@ get_agent_readonly() {
     echo "${val:-false}"
 }
 
+
+# ── Extracted from orchestrate.sh ──
+find_capable_fallback() {
+    local blocked_model="$1"
+    local provider="$2"
+
+    # Get capabilities of the blocked model
+    local catalog
+    catalog=$(get_model_catalog "$blocked_model")
+    local req_ctx req_tools req_images req_reasoning _prov _tier _status
+    IFS='|' read -r req_ctx req_tools req_images req_reasoning _prov _tier _status <<< "$catalog"
+
+    # Get all models for this provider, sorted by cost (cheapest first)
+    local -a candidates=()
+    case "$provider" in
+        codex)
+            candidates=(gpt-5.4-mini gpt-5.2-codex gpt-5.3-codex gpt-5.4 gpt-5.4-pro o3) ;;
+        gemini)
+            candidates=(gemini-3-flash-preview gemini-3.1-pro-preview) ;;
+        claude)
+            candidates=(claude-sonnet-4.6 claude-opus-4.6) ;;
+        openrouter)
+            candidates=(z-ai/glm-5 moonshotai/kimi-k2.5 deepseek/deepseek-r1-0528) ;;
+        perplexity)
+            candidates=(sonar sonar-pro) ;;
+    esac
+
+    for candidate in "${candidates[@]}"; do
+        [[ "$candidate" == "$blocked_model" ]] && continue
+
+        local c_catalog
+        c_catalog=$(get_model_catalog "$candidate")
+        local c_ctx c_tools c_images c_reasoning
+        IFS='|' read -r c_ctx c_tools c_images c_reasoning _ _ _ <<< "$c_catalog"
+
+        # Check capability match
+        [[ "$req_tools" == "yes" && "$c_tools" != "yes" ]] && continue
+        [[ "$req_images" == "yes" && "$c_images" != "yes" ]] && continue
+        [[ "$req_reasoning" == "yes" && "$c_reasoning" != "yes" ]] && continue
+
+        echo "$candidate"
+        return 0
+    done
+
+    # No capable fallback found
+    return 1
+}

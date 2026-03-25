@@ -497,3 +497,32 @@ complete_session() {
 # retry_failed_subtasks, build_anchor_ref, build_file_reference, resume_agent
 
 
+
+# ── Extracted from orchestrate.sh ──
+cleanup_expired_checkpoints() {
+    local checkpoint_dir="${WORKSPACE_DIR}/.octo/checkpoints"
+
+    if [[ ! -d "$checkpoint_dir" ]]; then
+        return 0
+    fi
+
+    local now
+    now=$(date +%s)
+
+    for checkpoint in "$checkpoint_dir"/*.checkpoint.json; do
+        [[ -f "$checkpoint" ]] || continue
+
+        local mod_time age
+        if stat -f %m "$checkpoint" &>/dev/null; then
+            mod_time=$(stat -f %m "$checkpoint")
+        else
+            mod_time=$(stat -c %Y "$checkpoint")
+        fi
+        age=$((now - mod_time))
+
+        if [[ $age -gt 86400 ]]; then
+            rm -f "$checkpoint"
+            log DEBUG "Cleaned up expired checkpoint: $(basename "$checkpoint")"
+        fi
+    done
+}

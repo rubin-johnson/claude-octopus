@@ -27,11 +27,11 @@ else
     fail "gen-skill-docs.sh is executable" "missing execute permission"
 fi
 
-# ── Shared blocks directory (removed in v9.10.2 — blocks inlined into templates)
+# ── Shared blocks directory ────────────────────────────────────────────────────
 
 if [[ -d "$BLOCKS_DIR" ]]; then
-    pass "skills/blocks/ directory exists (legacy)"
-    expected_blocks="preamble.md provider-setup.md visual-indicators.md quality-gates.md command-reference.md"
+    pass "skills/blocks/ directory exists"
+    expected_blocks="provider-check.md"
     for block_file in $expected_blocks; do
         if [[ -f "$BLOCKS_DIR/$block_file" ]]; then
             pass "block file $block_file exists"
@@ -40,7 +40,7 @@ if [[ -d "$BLOCKS_DIR" ]]; then
         fi
     done
 else
-    pass "skills/blocks/ removed (blocks inlined into templates since v9.10.2)"
+    fail "skills/blocks/ directory exists" "not found"
 fi
 
 # ── Template files exist (at least 4) ───────────────────────────────────────
@@ -74,10 +74,10 @@ for tmpl_name in flow-discover.tmpl flow-define.tmpl flow-develop.tmpl flow-deli
         fail "$tmpl_name has PREAMBLE placeholder" "missing {{PREAMBLE}}"
     fi
 
-    if grep -q 'PROVIDER_CHECK_START' "$tmpl_file" 2>/dev/null; then
-        pass "$tmpl_name has provider check bash snippet"
+    if grep -q '{{PROVIDER_CHECK}}' "$tmpl_file" 2>/dev/null; then
+        pass "$tmpl_name has PROVIDER_CHECK placeholder"
     else
-        fail "$tmpl_name has provider check bash snippet" "missing PROVIDER_CHECK_START"
+        fail "$tmpl_name has PROVIDER_CHECK placeholder" "missing {{PROVIDER_CHECK}}"
     fi
 
     if grep -q '{{VISUAL_INDICATORS}}' "$tmpl_file" 2>/dev/null; then

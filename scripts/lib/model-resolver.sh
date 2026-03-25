@@ -185,3 +185,25 @@ resolve_octopus_model() {
 
     echo "$resolved_model"
 }
+
+# ── Extracted from orchestrate.sh ──
+# Validate model name to prevent shell injection and other malformed inputs
+validate_model_name() {
+    local model="$1"
+    
+    # Reject empty names
+    [[ -z "$model" ]] && return 1
+    
+    # Reject names with shell meta-characters (v8.50.0 Security hardening)
+    if [[ "$model" =~ [[:space:]\;\|\&\$\`\'\"()\<\>\!*?\[\]\{\}$'\n'$'\r'] ]]; then
+        return 1
+    fi
+    
+    # Reject names that look like absolute paths
+    if [[ "$model" == /* ]]; then
+        return 1
+    fi
+    
+    return 0
+}
+

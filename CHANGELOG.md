@@ -1,3 +1,14 @@
+## [9.12.0] - 2026-03-25
+
+### Changed
+
+- **orchestrate.sh decomposition wave 2** — Moved 27 functions to lib/ modules (agents.sh, cost.sh, dispatch.sh, providers.sh, routing.sh, quality.sh, session.sh, secure.sh, utils.sh, workflows.sh, model-resolver.sh). New lib/completions.sh for shell completion generation. orchestrate.sh: 4,944 → 3,707 lines (-25%), 70 → 41 functions (-41%).
+- **Dead code removal** — Removed `OLD_init_interactive_impl()`, `get_fallback_agent_v2()` from orchestrate.sh and interactive.sh (272 lines removed from interactive.sh).
+- **Fork reduction** — Converted 28 `echo|tr/cut/wc` patterns to bash builtins in intelligence.sh, factory.sh, cost.sh, context.sh. Fixed `cat|head` → `head` in factory-spec.sh.
+- **Provider check template block** — Extracted 10-line provider detection snippet to `skills/blocks/provider-check.md`. Flow templates now use `{{PROVIDER_CHECK}}` placeholder, resolved by gen-skill-docs.sh.
+
+---
+
 ## [9.11.0] - 2026-03-23
 
 ### Changed

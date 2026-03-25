@@ -232,7 +232,7 @@ score_nlspec_quality() {
     fi
 
     local spec_content
-    spec_content=$(cat "$spec_path" | head -500)
+    spec_content=$(head -500 "$spec_path")
 
     local nqs_prompt="You are a specification quality analyst. Score this NLSpec on 12 dimensions (0.0-1.0 each).
 

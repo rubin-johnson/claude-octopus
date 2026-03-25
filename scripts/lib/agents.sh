@@ -551,3 +551,151 @@ build_memory_context() {
     log "DEBUG" "Memory context loaded: scope=$scope, size=${#content} chars"
     echo "$content"
 }
+
+# ── Extracted from orchestrate.sh (optimization sweep) ──
+
+# Maps phase context to the appropriate codex-* agent type
+# Usage: get_codex_agent_for_phase <phase> [task_hint]
+get_codex_agent_for_phase() {
+    local phase="${1:-develop}"
+    local task_hint="${2:-}"
+
+    # Task hints override phase defaults
+    case "$task_hint" in
+        fast|spark)         echo "codex-spark" ; return 0 ;;
+        reasoning)          echo "codex-reasoning" ; return 0 ;;
+        large-codebase)     echo "codex-large-context" ; return 0 ;;
+        budget|cheap)       echo "codex-mini" ; return 0 ;;
+    esac
+
+    # Phase-based agent selection
+    case "$phase" in
+        deliver|ink|review|quick)
+            echo "codex-spark"
+            ;;
+        *)
+            echo "codex"
+            ;;
+    esac
+}
+
+get_agent_for_task() {
+    local task_type="$1"
+    case "$task_type" in
+        image) echo "gemini-image" ;;
+        review) echo "codex-review" ;;
+        coding) echo "codex" ;;
+        design) echo "gemini" ;;       # Gemini excels at reasoning about design
+        copywriting) echo "gemini" ;;  # Gemini strong at creative writing
+        research) echo "gemini" ;;     # Gemini good at analysis/synthesis
+        general) echo "codex" ;;       # Default to codex for general tasks
+        *) echo "codex" ;;
+    esac
+}
+
+get_agent_description() {
+    local agent="$1"
+    local agent_file="$PLUGIN_DIR/agents/personas/$agent.md"
+
+    # v8.53.0: Fall back to user-scope agents
+    if [[ ! -f "$agent_file" ]]; then
+        agent_file="${USER_AGENTS_DIR}/${agent}.md"
+    fi
+
+    if [[ -f "$agent_file" ]]; then
+        grep -m1 "^description:" "$agent_file" 2>/dev/null | sed 's/description:[[:space:]]*//' | cut -c1-80
+    else
+        echo "Specialized agent"
+    fi
+}
+
+show_agent_recommendations() {
+    local prompt="$1"
+    local recommendations="$2"
+
+    # Only show in interactive mode (not CI, not dry-run)
+    [[ "$CI_MODE" == "true" ]] && return
+    [[ "$DRY_RUN" == "true" ]] && return
+
+    # Count recommendations
+    local rec_array=($recommendations)
+    local count=${#rec_array[@]}
+
+    [[ $count -lt 2 ]] && return
+
+    echo ""
+    echo -e "${CYAN}${_HEAVY}${NC}"
+    echo -e "${CYAN}🐙 Multiple tentacles could handle this task:${NC}"
+    echo ""
+
+    local i=1
+    for agent in "${rec_array[@]}"; do
+        local desc
+        desc=$(get_agent_description "$agent")
+        echo -e "  ${GREEN}$i.${NC} ${YELLOW}$agent${NC}"
+        echo "     $desc"
+        echo ""
+        ((i++)) || true
+    done
+
+    local primary="${rec_array[0]}"
+    echo -e "${CYAN}Recommended: ${GREEN}$primary${NC} (best match based on keywords)"
+    echo -e "${CYAN}${_HEAVY}${NC}"
+    echo ""
+}
+
+# This replaces the simple get_agent_for_task for cost-aware routing
+# v4.5: Now resource-aware based on user config
+get_tiered_agent() {
+    local task_type="$1"
+    local complexity="${2:-2}"  # Default: standard
+    local agent=""
+
+    # Load user config for resource-aware routing (v4.5)
+    load_user_config 2>/dev/null || true
+
+    # Apply resource tier adjustment
+    local adjusted_complexity
+    adjusted_complexity=$(get_resource_adjusted_tier "$complexity" 2>/dev/null || echo "$complexity")
+
+    case "$task_type" in
+        image)
+            # Image generation always uses gemini-image
+            agent="gemini-image"
+            ;;
+        review)
+            # Reviews use standard tier (already cost-effective)
+            agent="codex-review"
+            ;;
+        coding|general)
+            # Coding tasks: tier based on adjusted complexity
+            case "$adjusted_complexity" in
+                1) agent="codex-mini" ;;      # Trivial → mini (cheapest)
+                2) agent="codex-standard" ;;  # Standard → standard tier
+                3) agent="codex" ;;           # Complex → premium
+                *) agent="codex-standard" ;;
+            esac
+            ;;
+        design|copywriting|research)
+            # Gemini tasks: tier based on complexity
+            case "$adjusted_complexity" in
+                1) agent="gemini-fast" ;;     # Trivial → flash (cheaper)
+                *) agent="gemini" ;;          # Standard+ → pro
+            esac
+            ;;
+        diamond-*)
+            # Double Diamond workflows: respect resource tier
+            case "$USER_RESOURCE_TIER" in
+                pro|api-only) agent="codex-standard" ;;  # Conservative
+                *) agent="codex" ;;                       # Premium
+            esac
+            ;;
+        *)
+            # Safe default: standard tier
+            agent="codex-standard"
+            ;;
+    esac
+
+    # Apply API key fallback (v4.5)
+    get_fallback_agent "$agent" "$task_type" 2>/dev/null || echo "$agent"
+}

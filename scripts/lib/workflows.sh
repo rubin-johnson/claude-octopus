@@ -994,3 +994,24 @@ EOF
     echo -e "Final document: ${CYAN}$delivery_file${NC}"
     echo ""
 }
+
+# ── Extracted from orchestrate.sh ──
+format_workflow_banner() {
+    local workflow="$1"
+    local description="$2"
+    local phase_emoji="${3:-🐙}"
+
+    if [[ "$OCTOPUS_COMPACT_BANNERS" == "true" ]]; then
+        # Compact: 2 lines
+        local providers=""
+        command -v codex &>/dev/null && providers+="🔴"
+        command -v gemini &>/dev/null && providers+="🟡"
+        [[ -n "${PERPLEXITY_API_KEY:-}" ]] && providers+="🟣"
+        providers+="🔵"
+        echo "🐙 ${workflow} — ${description} | ${providers}"
+    else
+        # Full: standard verbose banner (existing behavior, unchanged)
+        echo "🐙 **CLAUDE OCTOPUS ACTIVATED** - ${workflow}"
+        echo "${phase_emoji} ${description}"
+    fi
+}

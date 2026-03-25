@@ -221,9 +221,9 @@ factory_run() {
     # ── Pre-flight: Specification Maturity Assessment (E27) ──────────────
     local maturity_result maturity_level maturity_sections maturity_json
     maturity_result=$(assess_spec_maturity "$spec_path")
-    maturity_level=$(echo "$maturity_result" | cut -d'|' -f1)
-    maturity_sections=$(echo "$maturity_result" | cut -d'|' -f2)
-    maturity_json=$(echo "$maturity_result" | cut -d'|' -f3)
+    maturity_level="${maturity_result%%|*}"
+    local _mr_rest="${maturity_result#*|}"; maturity_sections="${_mr_rest%%|*}"
+    local _mr_rest2="${maturity_result#*|}"; maturity_json="${_mr_rest2#*|}"
 
     if [[ "$maturity_level" == "Skeleton" ]]; then
         log ERROR "Spec maturity too low: $maturity_level ($maturity_sections/6 sections)"
@@ -269,8 +269,8 @@ factory_run() {
     echo -e "${YELLOW}[1b/7]${NC} Scoring spec quality (NQS)..."
     local nqs_result nqs_score nqs_verdict
     nqs_result=$(score_nlspec_quality "$spec_path" "$run_dir")
-    nqs_score=$(echo "$nqs_result" | cut -d'|' -f1)
-    nqs_verdict=$(echo "$nqs_result" | cut -d'|' -f2)
+    nqs_score="${nqs_result%%|*}"
+    nqs_verdict="${nqs_result#*|}"
 
     if [[ "$nqs_verdict" == "FAIL" ]]; then
         echo -e "${RED}  ✗ NQS Score: ${nqs_score}/100 (minimum 85 required)${NC}"
@@ -352,8 +352,8 @@ Implement the specification above. Ensure all visible test scenarios pass."
     local score_result
     score_result=$(score_satisfaction "$run_dir" "$satisfaction_target")
     local composite verdict
-    composite=$(echo "$score_result" | cut -d'|' -f1)
-    verdict=$(echo "$score_result" | cut -d'|' -f2)
+    composite="${score_result%%|*}"
+    verdict="${score_result#*|}"
     echo -e "${GREEN}  ✓${NC} Score: $composite -> $verdict"
 
     # ── Retry logic ──────────────────────────────────────────────────────
@@ -389,8 +389,8 @@ Focus on fixing the failing scenarios. Do NOT restart from scratch — improve t
         # Re-evaluate
         holdout_score=$(run_holdout_tests "$run_dir")
         score_result=$(score_satisfaction "$run_dir" "$satisfaction_target")
-        composite=$(echo "$score_result" | cut -d'|' -f1)
-        verdict=$(echo "$score_result" | cut -d'|' -f2)
+        composite="${score_result%%|*}"
+        verdict="${score_result#*|}"
         echo -e "${GREEN}  ✓${NC} Retry score: $composite -> $verdict"
     done
 
