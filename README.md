@@ -145,9 +145,8 @@ Or skip the table — type `/octo:auto <what you want>` or just say `octo <what 
 | **Consensus gates** | No | No | Yes — 75% agreement threshold |
 | **Best for** | Quick tasks, simple features | Large builds with clear specs | Research, review, debates, multi-provider validation |
 | **Setup** | Nothing | Install plugin | Install plugin, optionally add providers |
-| **Works together?** | — | — | Yes — Octopus attributes Superpowers as an influence and both can be installed |
 
-**tl;dr:** Superpowers makes one agent work really well for hours. Octopus makes multiple agents check each other's work. They solve different problems — and you can use both.
+**tl;dr:** Superpowers makes one agent work really well for hours. Octopus makes multiple agents check each other's work. They solve different problems.
 
 </details>
 
