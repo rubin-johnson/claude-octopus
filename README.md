@@ -55,7 +55,38 @@ claude plugin install octo@nyldn-plugins
 That's it. Setup detects installed providers, shows what's missing, and walks you through configuration. You need **zero** external providers to start — Claude is built in.
 
 <details>
-<summary>Alternative install methods</summary>
+<summary>Install for Codex CLI</summary>
+
+```bash
+git clone --depth 1 https://github.com/nyldn/claude-octopus.git ~/.codex/claude-octopus
+mkdir -p ~/.agents/skills
+ln -s ~/.codex/claude-octopus/skills ~/.agents/skills/claude-octopus
+```
+
+Restart Codex. Skills appear automatically — invoke with `$skill-doctor`, `$skill-debug`, etc.
+</details>
+
+<details>
+<summary>Install for Cursor IDE</summary>
+
+Install from the Cursor plugin marketplace, or clone manually:
+```bash
+git clone --depth 1 https://github.com/nyldn/claude-octopus.git ~/.cursor/claude-octopus
+```
+</details>
+
+<details>
+<summary>Install for OpenCode</summary>
+
+```bash
+git clone --depth 1 https://github.com/nyldn/claude-octopus.git ~/.opencode/claude-octopus
+mkdir -p ~/.agents/skills
+ln -s ~/.opencode/claude-octopus/skills ~/.agents/skills/claude-octopus
+```
+</details>
+
+<details>
+<summary>Other install methods (Claude Code)</summary>
 
 **From the Claude Code UI:** Type `/plugin` in a session → **Marketplace** tab → install **octo**.
 
