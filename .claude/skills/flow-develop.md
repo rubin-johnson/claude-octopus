@@ -737,52 +737,76 @@ This prevents develop workflows from spinning without progress when orchestrate.
 
 ---
 
-## After Implementation: Auto Code Review & E2E Verification (MANDATORY)
+## After Implementation: Two-Stage Review + Verification (MANDATORY)
 
-**After implementation completes and before presenting results to the user, you MUST launch two verification agents in parallel.** Do NOT skip this step or ask the user whether to run it — it is automatic.
+**After implementation completes and before presenting results, run a two-stage review.** Do NOT skip or ask — it is automatic.
 
-### Launch both agents simultaneously:
+### Stage 1: Spec Compliance Review
 
-**Agent 1 — Code Review (Sonnet):**
+Does the implementation match what was asked for? Run this FIRST — there's no point reviewing code quality if the wrong thing was built.
+
+```
+Agent(
+  model: "sonnet",
+  run_in_background: true,
+  description: "Spec compliance: post-develop",
+  prompt: "Review the code changes from this development session for SPEC COMPLIANCE ONLY.
+
+Check git diff for changed files. Compare against the original task requirements.
+
+Report:
+- MISSING: Requirements stated but not implemented
+- EXTRA: Code added that wasn't requested (over-building)
+- DIVERGENT: Implementation that contradicts requirements
+
+Do NOT review code quality, style, or performance — that's a separate stage.
+If everything matches the spec, report: ✅ Spec compliant."
+)
+```
+
+### Stage 2: Code Quality Review (runs in parallel with Stage 1)
+
 ```
 Agent(
   model: "sonnet",
   subagent_type: "feature-dev:code-reviewer",
   run_in_background: true,
-  description: "Code review: post-develop",
-  prompt: "Review the code changes from this development session. Focus on:
+  description: "Code quality: post-develop",
+  prompt: "Review the code changes from this development session for CODE QUALITY.
+
+Check git diff for changed files. Focus on:
 1. Bugs, logic errors, security vulnerabilities
 2. Hidden dependencies or coupling issues
-3. Whether error handling covers failure modes
+3. Error handling coverage
 4. Adherence to project conventions (check CLAUDE.md)
 
-Check git diff for the changed files. Report only high-confidence issues."
+Report only high-confidence issues. Do NOT check spec compliance — that's a separate stage."
 )
 ```
 
-**Agent 2 — E2E Verification (Sonnet):**
+### Stage 3: E2E Verification (runs in parallel with Stages 1-2)
+
 ```
 Agent(
   model: "sonnet",
   run_in_background: true,
   description: "E2E test: post-develop",
-  prompt: "Run end-to-end verification of the development changes:
-1. Run the project's test suite (detect from package.json scripts, Makefile, or pyproject.toml)
-2. Verify no regressions in existing tests
-3. Check that new files are properly integrated (imported, registered, sourced)
-4. Verify the implementation matches the original task requirements
+  prompt: "Run end-to-end verification:
+1. Run the project's test suite (detect from package.json, Makefile, or pyproject.toml)
+2. Verify no regressions
+3. Check new files are integrated (imported, registered, sourced)
 
-Report: tests passed/failed, any integration issues found."
+Report: tests passed/failed, integration issues."
 )
 ```
 
-**After both agents complete:**
-- Present their findings to the user as part of the results
-- If the code reviewer found HIGH-confidence issues, flag them prominently
-- If tests failed, flag before the "what next?" prompt
-- Do NOT block on the review — present findings alongside results
+**After all three agents complete:**
+- **Spec compliance issues block** — if MISSING or DIVERGENT items found, flag prominently
+- **Code quality issues warn** — flag HIGH-confidence issues but don't block
+- **Test failures flag** — report before "what next?" prompt
+- Present all findings together
 
-WHY: The user should never have to manually request a code review after development work. Fresh-eyes review from a different model (Sonnet vs Opus) catches issues the implementer is blind to. Running tests automatically catches regressions before the user discovers them.
+WHY: Two-stage review catches different failure modes. Spec compliance prevents building the wrong thing. Code quality prevents building the right thing badly. Running both in parallel costs no extra time. Verification gate (skill-verification-gate) ensures evidence backs every claim.
 
 ---
 

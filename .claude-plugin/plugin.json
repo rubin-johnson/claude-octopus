@@ -81,7 +81,9 @@
     "./.claude/skills/skill-doc-sync.md",
     "./.claude/skills/skill-cost-projections.md",
     "./.claude/skills/skill-design-lineage.md",
-    "./.claude/skills/skill-copilot-provider.md"
+    "./.claude/skills/skill-copilot-provider.md",
+    "./.claude/skills/skill-verification-gate.md",
+    "./.claude/skills/skill-review-response.md"
   ],
   "commands": [
     "./.claude/commands/auto.md",
