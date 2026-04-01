@@ -58,9 +58,7 @@ That's it. Setup detects installed providers, shows what's missing, and walks yo
 <summary>Install for Codex CLI</summary>
 
 ```bash
-git clone --depth 1 https://github.com/nyldn/claude-octopus.git ~/.codex/claude-octopus
-mkdir -p ~/.agents/skills
-ln -s ~/.codex/claude-octopus/skills ~/.agents/skills/claude-octopus
+git clone --depth 1 https://github.com/nyldn/claude-octopus.git ~/.codex/claude-octopus && mkdir -p ~/.agents/skills && ln -sf ~/.codex/claude-octopus/skills ~/.agents/skills/claude-octopus
 ```
 
 Restart Codex. Skills appear automatically — invoke with `$skill-doctor`, `$skill-debug`, etc.
