@@ -146,6 +146,10 @@ else
     WORKSPACE_DIR="${HOME}/.claude-octopus"
 fi
 
+# Re-derive SESSION_FILE now that WORKSPACE_DIR is known
+# (quality.sh sets it at source-time before WORKSPACE_DIR is defined)
+SESSION_FILE="${WORKSPACE_DIR}/session.json"
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLAUDE CODE INTEGRATION: Task Management (v7.16.0)
 # Capture Claude Code v2.1.16+ environment variables for enhanced progress tracking

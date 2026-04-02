@@ -194,7 +194,7 @@ cleanup_cache() {
         fi
     done
 
-    [[ $cleaned -gt 0 ]] && log "INFO" "Cleaned $cleaned expired cache entries"
+    [[ $cleaned -gt 0 ]] && log "INFO" "Cleaned $cleaned expired cache entries" || true
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -228,5 +228,5 @@ cleanup_old_results() {
     # Clean marker files
     find "$RESULTS_DIR" -name "*.marker" -mmin "+$retention_mins" -delete 2>/dev/null || true
 
-    [[ $cleaned -gt 0 ]] && log "INFO" "Cleaned $cleaned expired result files (retention: ${retention_hours}h)"
+    [[ $cleaned -gt 0 ]] && log "INFO" "Cleaned $cleaned expired result files (retention: ${retention_hours}h)" || true
 }
