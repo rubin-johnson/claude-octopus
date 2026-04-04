@@ -11,6 +11,9 @@
 
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# v9.19.0: Safe default for --bare flag (set by providers.sh, but guard for standalone sourcing)
+_BARE_OPT="${_BARE_OPT:-}"
+
 # Role-to-agent mapping (function-based for bash 3.x compatibility)
 # Returns agent:model format for a given role
 get_role_mapping() {
@@ -364,7 +367,7 @@ run_with_claude_code_ralph() {
 IMPORTANT: When task is complete, output exactly: $promise
 Do not output this promise until the task is truly finished."
 
-        claude --print "$iteration_prompt"
+        claude${_BARE_OPT} --print "$iteration_prompt"
     fi
 }
 

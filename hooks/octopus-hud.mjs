@@ -372,12 +372,28 @@ function isCacheValid(cache) {
   return Date.now() - cache.timestamp < ttl;
 }
 
-async function getUsage() {
+// v9.19.0: Parse CC-provided rate_limits from stdin (v2.1.80+, SUPPORTS_RATE_LIMIT_STATUSLINE)
+// Used as fallback when OAuth API is unavailable (enterprise, API-billing, expired creds)
+function parseInputRateLimits(inputRateLimits) {
+  if (!inputRateLimits) return null;
+  const clamp = (v) => (v == null || !isFinite(v)) ? 0 : Math.max(0, Math.min(100, v));
+  return {
+    fiveHour: clamp(inputRateLimits.five_hour?.utilization),
+    fiveHourResets: null,
+    sevenDay: clamp(inputRateLimits.seven_day?.utilization),
+    sevenDayResets: null,
+  };
+}
+
+async function getUsage(inputRateLimits) {
   const cache = readUsageCache();
   if (cache && isCacheValid(cache)) return cache.data;
 
   let creds = getCredentials();
-  if (!creds) { writeUsageCache(null, true); return null; }
+  if (!creds) {
+    writeUsageCache(null, true);
+    return parseInputRateLimits(inputRateLimits);
+  }
 
   if (creds.expiresAt && creds.expiresAt <= Date.now()) {
     if (creds.refreshToken) {
@@ -387,16 +403,19 @@ async function getUsage() {
         writeBackCredentials(creds);
       } else {
         writeUsageCache(null, true);
-        return null;
+        return parseInputRateLimits(inputRateLimits);
       }
     } else {
       writeUsageCache(null, true);
-      return null;
+      return parseInputRateLimits(inputRateLimits);
     }
   }
 
   const resp = await fetchUsage(creds.accessToken);
-  if (!resp) { writeUsageCache(null, true); return null; }
+  if (!resp) {
+    writeUsageCache(null, true);
+    return parseInputRateLimits(inputRateLimits);
+  }
 
   const clamp = (v) => (v == null || !isFinite(v)) ? 0 : Math.max(0, Math.min(100, v));
   const parseDate = (s) => { try { const d = new Date(s); return isNaN(d.getTime()) ? null : d; } catch { return null; } };
@@ -1106,7 +1125,7 @@ async function main() {
   writeContextBridge(input);
 
   const [usage, transcript, latestVersion] = await Promise.all([
-    getUsage(),
+    getUsage(input.rate_limits),
     parseTranscript(input.transcript_path),
     getLatestVersion(),
   ]);

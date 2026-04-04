@@ -830,6 +830,75 @@ doctor_check_skills() {
             "CC v2.1.73 background bash auto-cleaned from subagents" \
             "Background bash processes spawned by subagents are automatically cleaned up on agent exit"
     fi
+
+    # ── v9.19.0: CC v2.1.87-92 doctor tips ──────────────────────────────────────
+
+    if [[ "$SUPPORTS_POST_COMPACT_HOOK" == "true" ]]; then
+        doctor_add "post-compact-hook" "skills" "pass" \
+            "CC v2.1.76 PostCompact hook active — workflow context recovers after compaction" \
+            "Pre-compact state is re-injected automatically via PostCompact hook"
+    fi
+
+    if [[ "$SUPPORTS_BARE_FLAG" == "true" ]]; then
+        doctor_add "bare-flag" "skills" "pass" \
+            "CC v2.1.87 --bare flag active — subprocess synthesis runs faster" \
+            "Octopus uses --bare for claude -p subprocess calls to skip hooks/LSP loading"
+    fi
+
+    if [[ "$SUPPORTS_MODEL_CAP_ENV_VARS" == "true" ]]; then
+        doctor_add "model-cap-env-vars" "skills" "info" \
+            "CC v2.1.87 ANTHROPIC_DEFAULT_*_MODEL_SUPPORTS env vars available" \
+            "3rd-party provider capabilities are detected automatically for routing decisions"
+    fi
+
+    if [[ "$SUPPORTS_CONSOLE_AUTH" == "true" ]]; then
+        doctor_add "console-auth" "skills" "info" \
+            "CC v2.1.87 --console auth available (Anthropic Console API billing)" \
+            "Use 'claude --console' to authenticate via the Anthropic Console for API-billed usage"
+    fi
+
+    if [[ "$SUPPORTS_PLUGIN_EXECUTABLES" == "true" ]]; then
+        doctor_add "plugin-executables" "skills" "pass" \
+            "CC v2.1.91 plugin executables active — 'octopus' available as bare command" \
+            "Run 'octopus doctor' or 'octopus version' directly from the terminal"
+    fi
+
+    if [[ "$SUPPORTS_MCP_RESULT_SIZE" == "true" ]]; then
+        doctor_add "mcp-result-size" "skills" "info" \
+            "CC v2.1.91 MCP result size override available (up to 500K chars)" \
+            "MCP tools can use _meta[\"anthropic/maxResultSizeChars\"] for larger results"
+    fi
+
+    if [[ "$SUPPORTS_MARKETPLACE_OFFLINE" == "true" ]]; then
+        doctor_add "marketplace-offline" "skills" "info" \
+            "CC v2.1.90 marketplace offline mode available" \
+            "Set CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1 for graceful degradation on flaky networks"
+    fi
+
+    if [[ "$SUPPORTS_DISABLE_SKILL_SHELL" == "true" ]]; then
+        doctor_add "disable-skill-shell" "skills" "info" \
+            "CC v2.1.91 disableSkillShellExecution setting available" \
+            "When enabled, skills cannot invoke shell commands — orchestrate.sh workflows require this to be false"
+    fi
+
+    if [[ "$SUPPORTS_RATE_LIMIT_STATUSLINE" == "true" ]]; then
+        doctor_add "rate-limit-hud-fallback" "skills" "pass" \
+            "CC v2.1.80 rate_limits field used as HUD fallback" \
+            "Octopus HUD uses CC-provided rate limits when OAuth API is unavailable"
+    fi
+
+    if [[ "$SUPPORTS_MANAGED_SETTINGS_D" == "true" ]]; then
+        local _settings_fragment="${HOME}/.claude/managed-settings.d/octopus-defaults.json"
+        if [[ -f "$_settings_fragment" ]]; then
+            doctor_add "managed-settings-fragment" "skills" "pass" \
+                "CC v2.1.83 managed-settings.d/ fragment installed" \
+                "octopus-defaults.json active in ~/.claude/managed-settings.d/ (git instructions off, auto-memory dir set)"
+        else
+            doctor_add "managed-settings-fragment" "skills" "info" \
+                "CC v2.1.83 managed-settings.d/ fragment not yet installed" \
+                "Restart session to deploy octopus-defaults.json to ~/.claude/managed-settings.d/"
+        fi
+    fi
 }
 
 # --- Category 8: Conflicts ---

@@ -386,5 +386,41 @@
         }
       ]
     }
+  ],
+  "PostCompact": [
+    {
+      "matcher": {},
+      "hooks": [
+        {
+          "type": "command",
+          "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-compact.sh",
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "Elicitation": [
+    {
+      "matcher": {},
+      "hooks": [
+        {
+          "type": "command",
+          "command": "${CLAUDE_PLUGIN_ROOT}/hooks/elicitation-handler.sh",
+          "timeout": 5
+        }
+      ]
+    }
+  ],
+  "ElicitationResult": [
+    {
+      "matcher": {},
+      "hooks": [
+        {
+          "type": "command",
+          "command": "${CLAUDE_PLUGIN_ROOT}/hooks/elicitation-handler.sh result",
+          "timeout": 5
+        }
+      ]
+    }
   ]
 }

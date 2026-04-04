@@ -276,6 +276,8 @@ detect_claude_code_version() {
         SUPPORTS_WORKTREE_SPARSE_PATHS=true
         SUPPORTS_EFFORT_COMMAND=true
         SUPPORTS_BG_PARTIAL_RESULTS=true
+        SUPPORTS_POST_COMPACT_HOOK=true
+        SUPPORTS_ELICITATION_HOOKS=true
     fi
 
     # Check for v2.1.77+ features (allowRead sandbox, /copy N, compound bash fix, resume truncation fix,
@@ -336,6 +338,37 @@ detect_claude_code_version() {
         SUPPORTS_SKILL_DESC_250=true
     fi
 
+    # Check for v2.1.87+ features (--bare flag, model capability env vars, console auth, worktree HTTP hooks)
+    if version_compare "$CLAUDE_CODE_VERSION" "2.1.87" ">="; then
+        SUPPORTS_BARE_FLAG=true
+        SUPPORTS_MODEL_CAP_ENV_VARS=true
+        SUPPORTS_CONSOLE_AUTH=true
+        SUPPORTS_WORKTREE_HTTP_HOOKS=true
+    fi
+
+    # Check for v2.1.88+ features (deep link expansion to 5K chars)
+    if version_compare "$CLAUDE_CODE_VERSION" "2.1.88" ">="; then
+        SUPPORTS_DEEP_LINK_5K=true
+    fi
+
+    # Check for v2.1.89+ features (session ID header for proxy aggregation)
+    if version_compare "$CLAUDE_CODE_VERSION" "2.1.89" ">="; then
+        SUPPORTS_SESSION_ID_HEADER=true
+    fi
+
+    # Check for v2.1.90+ features (marketplace offline mode)
+    if version_compare "$CLAUDE_CODE_VERSION" "2.1.90" ">="; then
+        SUPPORTS_MARKETPLACE_OFFLINE=true
+    fi
+
+    # Check for v2.1.91+ features (plugin executables, MCP result size, disable skill shell, multiline deep links)
+    if version_compare "$CLAUDE_CODE_VERSION" "2.1.91" ">="; then
+        SUPPORTS_PLUGIN_EXECUTABLES=true
+        SUPPORTS_MCP_RESULT_SIZE=true
+        SUPPORTS_DISABLE_SKILL_SHELL=true
+        SUPPORTS_MULTILINE_DEEP_LINKS=true
+    fi
+
     log "INFO" "Claude Code v$CLAUDE_CODE_VERSION detected"
     log "INFO" "Task Management: $SUPPORTS_TASK_MANAGEMENT | Fork Context: $SUPPORTS_FORK_CONTEXT | Agent Teams: $SUPPORTS_AGENT_TEAMS"
     log "INFO" "Persistent Memory: $SUPPORTS_PERSISTENT_MEMORY | Hook Events: $SUPPORTS_HOOK_EVENTS | Agent Type Routing: $SUPPORTS_AGENT_TYPE_ROUTING"
@@ -365,6 +398,11 @@ detect_claude_code_version() {
     log "INFO" "StopFailure Hook: $SUPPORTS_STOP_FAILURE_HOOK | Plugin Data Dir: $SUPPORTS_PLUGIN_DATA_DIR | Agent Effort: $SUPPORTS_AGENT_EFFORT"
     log "INFO" "CwdChanged Hook: $SUPPORTS_CWD_CHANGED_HOOK | FileChanged Hook: $SUPPORTS_FILE_CHANGED_HOOK | Managed Settings.d: $SUPPORTS_MANAGED_SETTINGS_D"
     log "INFO" "Env Scrub: $SUPPORTS_ENV_SCRUB | Agent Initial Prompt: $SUPPORTS_AGENT_INITIAL_PROMPT"
+    log "INFO" "PostCompact Hook: $SUPPORTS_POST_COMPACT_HOOK | Elicitation Hooks: $SUPPORTS_ELICITATION_HOOKS"
+    log "INFO" "Bare Flag: $SUPPORTS_BARE_FLAG | Model Cap Env Vars: $SUPPORTS_MODEL_CAP_ENV_VARS | Console Auth: $SUPPORTS_CONSOLE_AUTH"
+    log "INFO" "Worktree HTTP Hooks: $SUPPORTS_WORKTREE_HTTP_HOOKS | Session ID Header: $SUPPORTS_SESSION_ID_HEADER | Deep Link 5K: $SUPPORTS_DEEP_LINK_5K"
+    log "INFO" "Marketplace Offline: $SUPPORTS_MARKETPLACE_OFFLINE | Plugin Executables: $SUPPORTS_PLUGIN_EXECUTABLES | MCP Result Size: $SUPPORTS_MCP_RESULT_SIZE"
+    log "INFO" "Disable Skill Shell: $SUPPORTS_DISABLE_SKILL_SHELL | Multiline Deep Links: $SUPPORTS_MULTILINE_DEEP_LINKS"
 
     # v8.29.0: Context window control
     OCTOPUS_CONTEXT_WINDOW="${OCTOPUS_CONTEXT_WINDOW:-auto}"
@@ -380,6 +418,27 @@ detect_claude_code_version() {
     if [[ "$SUPPORTS_DISABLE_GIT_INSTRUCTIONS" == "true" ]]; then
         export CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS=1
         log "INFO" "Built-in git instructions disabled (SUPPORTS_DISABLE_GIT_INSTRUCTIONS)"
+    fi
+
+    # v9.19.0: --bare flag for subprocess synthesis (CC v2.1.87+)
+    # Skips hooks/LSP/plugin sync when running claude -p subprocesses, reducing latency
+    _BARE_OPT=""
+    if [[ "$SUPPORTS_BARE_FLAG" == "true" ]]; then
+        _BARE_OPT=" --bare"
+        log "INFO" "Subprocess synthesis uses --bare flag for faster claude -p calls"
+    fi
+    export _BARE_OPT
+
+    # v9.19.0: Surface 3p provider capabilities via env vars (CC v2.1.87+)
+    if [[ "$SUPPORTS_MODEL_CAP_ENV_VARS" == "true" ]]; then
+        # Read any ANTHROPIC_DEFAULT_*_MODEL_SUPPORTS env vars for 3p routing
+        local _cap_count=0
+        for _cap_var in $(env 2>/dev/null | grep '^ANTHROPIC_DEFAULT_.*_MODEL_SUPPORTS=' | cut -d= -f1); do
+            ((_cap_count++)) || true
+        done
+        if [[ $_cap_count -gt 0 ]]; then
+            log "INFO" "3P model capabilities: ${_cap_count} ANTHROPIC_DEFAULT_*_MODEL_SUPPORTS env vars detected"
+        fi
     fi
 
     # v8.5: Detect /fast toggle after version detection

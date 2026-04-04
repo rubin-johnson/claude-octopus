@@ -322,6 +322,20 @@ SUPPORTS_SKILL_DESC_250=false         # v9.18: Claude Code v2.1.86+ (skill descr
 SUPPORTS_TASKOUTPUT_DEPRECATED=false  # v9.18: Claude Code v2.1.83+ (TaskOutput deprecated — use Read on output file path)
 SUPPORTS_AGENT_INITIAL_PROMPT=false   # v9.12: Claude Code v2.1.83+ (initialPrompt agent frontmatter auto-submits first turn)
 SUPPORTS_CONTINUATION=false           # v8.30: Agent resume/continuation for iterative retries
+# ── v9.19.0: CC v2.1.87-92 sync ──────────────────────────────────────────────
+SUPPORTS_POST_COMPACT_HOOK=false        # v9.19: Claude Code v2.1.76+ (PostCompact hook event fires after compaction — missed in v8.57 sync)
+SUPPORTS_ELICITATION_HOOKS=false        # v9.19: Claude Code v2.1.76+ (Elicitation/ElicitationResult hook events for MCP structured input)
+SUPPORTS_BARE_FLAG=false                # v9.19: Claude Code v2.1.87+ (--bare skips hooks/LSP/plugin sync for scripted -p calls)
+SUPPORTS_MODEL_CAP_ENV_VARS=false       # v9.19: Claude Code v2.1.87+ (ANTHROPIC_DEFAULT_*_MODEL_SUPPORTS env vars for 3p provider capability detection)
+SUPPORTS_CONSOLE_AUTH=false             # v9.19: Claude Code v2.1.87+ (--console flag for Anthropic Console API billing auth)
+SUPPORTS_WORKTREE_HTTP_HOOKS=false      # v9.19: Claude Code v2.1.87+ (WorktreeCreate type:"http" with hookSpecificOutput.worktreePath)
+SUPPORTS_SESSION_ID_HEADER=false        # v9.19: Claude Code v2.1.89+ (X-Claude-Code-Session-Id header for proxy aggregation)
+SUPPORTS_DEEP_LINK_5K=false             # v9.19: Claude Code v2.1.88+ (deep links expanded to 5,000 chars with scroll-to-review)
+SUPPORTS_MARKETPLACE_OFFLINE=false      # v9.19: Claude Code v2.1.90+ (CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE env var)
+SUPPORTS_PLUGIN_EXECUTABLES=false       # v9.19: Claude Code v2.1.91+ (plugins can ship executables in bin/ as bare commands)
+SUPPORTS_MCP_RESULT_SIZE=false          # v9.19: Claude Code v2.1.91+ (_meta["anthropic/maxResultSizeChars"] annotation up to 500K)
+SUPPORTS_DISABLE_SKILL_SHELL=false      # v9.19: Claude Code v2.1.91+ (disableSkillShellExecution setting blocks shell in skills)
+SUPPORTS_MULTILINE_DEEP_LINKS=false     # v9.19: Claude Code v2.1.91+ (multi-line prompts in claude-cli://open?q= via %0A encoding)
 OCTOPUS_BACKEND="api"              # v8.16: Detected backend (api|bedrock|vertex|foundry)
 AGENT_TEAMS_ENABLED="${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-0}"
 OCTOPUS_SECURITY_V870="${OCTOPUS_SECURITY_V870:-true}"

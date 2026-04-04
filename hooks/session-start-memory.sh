@@ -76,7 +76,24 @@ EOFJSON
     echo "[Octopus] Restored preferences from auto-memory: autonomy=${AUTONOMY}"
 fi
 
-# --- 4. Query claude-mem for recent project context (v8.57.0) ---
+# --- 4. Deploy managed-settings.d/ fragment (v9.19.0, CC v2.1.83+) ---
+# Installs octopus-defaults.json with git instructions off + auto-memory dir
+# Note: Generated dynamically (not copied) because JSON has no tilde expansion
+if [[ "${SUPPORTS_MANAGED_SETTINGS_D:-false}" == "true" ]]; then
+    SETTINGS_D="${HOME}/.claude/managed-settings.d"
+    SETTINGS_DEST="${SETTINGS_D}/octopus-defaults.json"
+    if [[ ! -f "$SETTINGS_DEST" ]] || ! grep -q "$HOME" "$SETTINGS_DEST" 2>/dev/null; then
+        mkdir -p "$SETTINGS_D"
+        cat > "$SETTINGS_DEST" <<EOFSET
+{
+  "includeGitInstructions": false,
+  "autoMemoryDirectory": "${HOME}/.claude-octopus/memory/"
+}
+EOFSET
+    fi
+fi
+
+# --- 5. Query claude-mem for recent project context (v8.57.0) ---
 BRIDGE_SCRIPT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}/scripts/claude-mem-bridge.sh"
 if [[ -x "$BRIDGE_SCRIPT" ]]; then
     MEM_CONTEXT=$("$BRIDGE_SCRIPT" context "" 3 2>/dev/null || echo "")
