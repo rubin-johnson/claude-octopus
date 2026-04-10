@@ -1,3 +1,11 @@
+## [9.20.3] - 2026-04-10
+
+### Fixed
+
+- **Doctor false failure on Windows/Git Bash** — `jq.exe` on Windows outputs CRLF line endings. In `doctor_check_hooks()`, the trailing `
+` prevented quote-stripping from matching, leaving a stale `"` in hook script paths. The `-f` test then failed, reporting a false "Hook script missing" error. Fixed by piping jq output through `tr -d '
+'` before path resolution. No impact on Unix. Closes #258.
+
 ## [9.20.2] - 2026-04-09
 
 ### Fixed
