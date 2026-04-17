@@ -35,7 +35,7 @@ if [[ -n "${CLAUDE_PROJECT_DIR:-}" && -f "${CLAUDE_PROJECT_DIR}/memory/octopus-p
 else
     # CWD-based lookup then fallback scan
     CWD_ENCODED=$(pwd | tr '/' '-' | sed 's/^-//')
-    for mem_dir in "$MEMORY_DIR"/*"${CWD_ENCODED}"*/memory "$MEMORY_DIR"/*/memory; do
+    for mem_dir in "$MEMORY_DIR"/*"${CWD_ENCODED}"*/memory; do
         if [[ -f "${mem_dir}/octopus-preferences.md" ]]; then
             PREFS_FILE="${mem_dir}/octopus-preferences.md"
             break
@@ -93,7 +93,7 @@ if [[ "${SUPPORTS_MANAGED_SETTINGS_D:-false}" == "true" ]]; then
     SETTINGS_DEST="${SETTINGS_D}/octopus-defaults.json"
     if [[ ! -f "$SETTINGS_DEST" ]] || ! grep -q "$HOME" "$SETTINGS_DEST" 2>/dev/null; then
         mkdir -p "$SETTINGS_D"
-        local _tmp="${SETTINGS_DEST}.tmp.$$"
+        _tmp="${SETTINGS_DEST}.tmp.$$"
         cat > "$_tmp" <<EOFSET
 {
   "includeGitInstructions": false,

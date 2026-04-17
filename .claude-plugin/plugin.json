@@ -1,34 +1,23 @@
 {
   "name": "octo",
-  "version": "9.22.0",
-  "description": "v9.22.0 \u2014 Multi-LLM orchestration for Claude Code with Double Diamond workflows, provider routing, safety gates, and automation. Use '/octo:auto' or just describe what you need. Run /octo:setup.",
+  "version": "9.22.2",
+  "description": "Multi-LLM orchestration for Claude Code with Double Diamond workflows, provider routing, safety gates, and automation. Use '/octo:auto' or just describe what you need. Run /octo:setup.",
   "author": {
-    "name": "nyldn"
+    "name": "nyldn",
+    "url": "https://github.com/nyldn"
   },
   "license": "MIT",
   "repository": "https://github.com/nyldn/claude-octopus",
-  "homepage": "https://github.com/nyldn/claude-octopus",
   "keywords": [
     "multi-llm",
     "multi-agent",
     "orchestration",
-    "cowork",
     "claude-code-plugin",
     "double-diamond",
     "codex",
     "gemini",
     "copilot",
-    "qwen",
-    "ollama",
-    "perplexity",
-    "openrouter",
-    "multi-provider",
-    "adversarial-review",
-    "tdd",
-    "debugging",
     "code-review",
-    "research",
-    "knowledge-work",
     "automation"
   ],
   "skills": [

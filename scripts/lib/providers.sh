@@ -804,3 +804,123 @@ EOF
         echo "$content" | sed 's/\\n/\n/g; s/\\t/\t/g; s/\\"/"/g'
     fi
 }
+
+# ── detect_providers: multi-CLI + auth detection (moved from orchestrate.sh v9.22.1) ──
+detect_providers() {
+    local result=""
+
+    # Detect Codex CLI
+    if command -v codex &>/dev/null; then
+        local codex_auth="none"
+        if [[ -f "$HOME/.codex/auth.json" ]]; then
+            codex_auth="oauth"
+        elif [[ -n "${OPENAI_API_KEY:-}" ]]; then
+            codex_auth="api-key"
+        fi
+        result="${result}codex:${codex_auth} "
+    fi
+
+    # Detect Gemini CLI
+    if command -v gemini &>/dev/null; then
+        local gemini_auth="none"
+        if [[ -f "$HOME/.gemini/oauth_creds.json" ]]; then
+            gemini_auth="oauth"
+        elif [[ -n "${GEMINI_API_KEY:-}" ]]; then
+            gemini_auth="api-key"
+        fi
+        result="${result}gemini:${gemini_auth} "
+    fi
+
+    # Detect Claude CLI (always available in Claude Code context)
+    if command -v claude &>/dev/null; then
+        local claude_auth="oauth"
+        # v8.8: Use claude auth status for reliable auth verification
+        if [[ "$SUPPORTS_AUTH_CLI" == "true" ]]; then
+            if claude auth status &>/dev/null; then
+                claude_auth="verified"
+            else
+                claude_auth="oauth"  # Fallback: assume oauth in Claude Code context
+                log "DEBUG" "claude auth status returned non-zero, assuming oauth context"
+            fi
+        fi
+        result="${result}claude:${claude_auth} "
+    fi
+
+    # Detect OpenRouter (API key only)
+    if [[ -n "${OPENROUTER_API_KEY:-}" ]]; then
+        result="${result}openrouter:api-key "
+    fi
+
+    # Detect Perplexity (API key only)
+    if [[ -n "${PERPLEXITY_API_KEY:-}" ]]; then
+        result="${result}perplexity:api-key "
+    fi
+
+    # Detect Ollama (CLI + server)
+    if command -v ollama &>/dev/null; then
+        if curl -sf http://localhost:11434/api/tags &>/dev/null; then
+            result="${result}ollama:running "
+        else
+            result="${result}ollama:installed "
+        fi
+    fi
+
+    # Detect Copilot CLI (v9.9.0)
+    if command -v copilot &>/dev/null; then
+        local copilot_auth="none"
+        if [[ -n "${COPILOT_GITHUB_TOKEN:-}" ]]; then
+            copilot_auth="pat"
+        elif [[ -n "${GH_TOKEN:-}" ]] || [[ -n "${GITHUB_TOKEN:-}" ]]; then
+            copilot_auth="env-token"
+        elif [[ -f "${HOME}/.copilot/config.json" ]]; then
+            copilot_auth="keychain"
+        elif command -v gh &>/dev/null && gh auth status &>/dev/null 2>&1; then
+            copilot_auth="gh-cli"
+        fi
+        result="${result}copilot:${copilot_auth} "
+    fi
+
+    # Detect Qwen CLI (v9.10.0 — free tier)
+    if command -v qwen &>/dev/null; then
+        local qwen_auth="none"
+        if [[ -f "${HOME}/.qwen/oauth_creds.json" ]]; then
+            qwen_auth="oauth"
+        elif [[ -f "${HOME}/.qwen/config.json" ]]; then
+            qwen_auth="config"
+        elif [[ -n "${QWEN_API_KEY:-}" ]]; then
+            qwen_auth="api-key"
+        fi
+        result="${result}qwen:${qwen_auth} "
+    fi
+
+    # Detect OpenCode CLI (v9.11.0 — multi-provider router)
+    if command -v opencode &>/dev/null; then
+        local opencode_auth="none"
+        if [[ -f "${HOME}/.local/share/opencode/auth.json" ]]; then
+            # Verify auth is actually valid via auth list (with timeout to prevent hang)
+            if timeout 3 opencode auth list &>/dev/null 2>&1; then
+                opencode_auth="multi"
+            else
+                opencode_auth="expired"
+            fi
+        fi
+        result="${result}opencode:${opencode_auth} "
+    fi
+
+    # Fail gracefully with helpful message if no providers found
+    if [[ -z "$result" ]]; then
+        log WARN "No AI providers detected. Install at least one:"
+        log WARN "  - Codex: npm i -g @openai/codex"
+        log WARN "  - Gemini: npm i -g @google/gemini-cli"
+        log WARN "  - Claude: Available in Claude Code context"
+        log WARN "  - OpenRouter: Set OPENROUTER_API_KEY environment variable"
+        log WARN "  - Copilot: brew install copilot-cli (zero additional cost)"
+        log WARN "  - Ollama: brew install ollama (free local LLM)"
+        log WARN "  - Qwen: npm i -g @qwen-code/qwen-code (free tier)"
+        log WARN "  - OpenCode: npm i -g opencode (multi-provider router)"
+        echo "none:unavailable"
+        return 1
+    fi
+
+    echo "$result" | xargs  # Trim whitespace
+}

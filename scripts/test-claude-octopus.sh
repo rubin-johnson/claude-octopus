@@ -697,7 +697,7 @@ fi
 
 # Test API fallback function exists
 echo -n "  Testing: API fallback function defined... "
-if grep -q 'get_fallback_agent()' "$SCRIPT"; then
+if grep -rq 'get_fallback_agent()' $SCRIPTS_ALL; then
     echo -e "${GREEN}PASS${NC}"
     ((PASS++))
 else
@@ -988,7 +988,7 @@ fi
 
 # --- Provider Detection ---
 echo -n "  detect_providers() function exists... "
-if grep -q 'detect_providers()' "$SCRIPT"; then
+if grep -rq 'detect_providers()' $SCRIPTS_ALL; then
     echo -e "${GREEN}PASS${NC}"
     ((PASS++))
 else
@@ -1025,7 +1025,7 @@ else
 fi
 
 echo -n "  get_tiered_agent_v2() function exists... "
-if grep -q 'get_tiered_agent_v2()' "$SCRIPT"; then
+if grep -rq 'get_tiered_agent_v2()' $SCRIPTS_ALL; then
     echo -e "${GREEN}PASS${NC}"
     ((PASS++))
 else
@@ -1034,7 +1034,7 @@ else
 fi
 
 echo -n "  is_agent_available_v2() function exists... "
-if grep -q 'is_agent_available_v2()' "$SCRIPT"; then
+if grep -rq 'is_agent_available_v2()' $SCRIPTS_ALL; then
     echo -e "${GREEN}PASS${NC}"
     ((PASS++))
 else

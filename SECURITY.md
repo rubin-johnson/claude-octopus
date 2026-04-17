@@ -38,7 +38,11 @@ Claude Octopus orchestrates external AI CLI tools (Codex CLI, Gemini CLI) with u
 - User prompts passed as single arguments (prevents word splitting)
 - Array-based command execution in `spawn_agent()` and `run_agent_sync()`
 - `set -f` disables glob expansion in subshells
-- No use of `eval` with user-provided data in production code
+- `eval` is used only on synthesized variable names that pass through
+  `${var//[^a-zA-Z0-9]/_}` scrubbing (see `scripts/lib/model-resolver.sh` and
+  `scripts/lib/quality.sh`). Never on user-provided strings.
+- `hooks/sysadmin-safety-gate.sh` pattern matching is defense-in-depth, not a
+  security boundary — treat the host permission system as the real control.
 
 ### 3. Secrets Management
 
@@ -58,9 +62,9 @@ Claude Octopus orchestrates external AI CLI tools (Codex CLI, Gemini CLI) with u
 
 | Version | Supported |
 |---------|-----------|
-| 9.9.x   | Yes - Full security updates |
-| 9.0-9.8 | Critical patches only |
-| < 9.0   | No |
+| 9.22.x  | Yes - Full security updates |
+| 9.9-9.21 | Critical patches only |
+| < 9.9   | No |
 
 ## Reporting Vulnerabilities
 

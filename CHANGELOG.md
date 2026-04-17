@@ -1,3 +1,29 @@
+## [9.22.2] - 2026-04-17
+
+### Fixed
+
+- **SessionStart hook crashed for returning users** — `hooks/session-start-memory.sh:96` used `local` outside a function under `set -euo pipefail`, exiting 1 when `SUPPORTS_MANAGED_SETTINGS_D=true` and an existing prefs file was found. Dropped the `local` keyword; hook now completes steps 4-5 (managed-settings fragment + claude-mem context query) instead of aborting. Also removed the overly-permissive fallback glob at `:38` (`"$MEMORY_DIR"/*/memory`) that could apply another project's preferences to the current session.
+- **`bypassPermissions` string-match bypass** — four hooks (`codex-exec-guard.sh`, `scheduler-security-gate.sh`, `careful-check.sh`, `freeze-check.sh`) used `grep -q '"bypassPermissions"'` which matched `false` and commented lines, effectively making the gates always-bypassed. Removed the block entirely — these gates enforce correctness or opt-in policy the user explicitly configured (via `/octo:careful`, `/octo:freeze`, or scheduled job allowlists) and shouldn't be disabled by a global CC prompt-skip setting. Opt-out levers remain: `OCTO_CAREFUL_MODE=off`, `OCTO_FREEZE_MODE=off`.
+- **`scripts/test-claude-octopus.sh` greped orchestrate.sh only** — 4 assertions used `$SCRIPT` (orchestrate.sh) instead of `$SCRIPTS_ALL` (orchestrate + lib/*.sh) to locate extracted functions. Switched to `grep -rq ... $SCRIPTS_ALL` matching the sibling test pattern.
+
+### Changed
+
+- **Worktree credential hygiene** — `hooks/worktree-setup.sh` now writes `.octopus-env` under `umask 077` + explicit `chmod 600` (previously world-readable under default umask 022). Refuses worktree paths outside `$HOME`, `/tmp`, `/private/tmp`, `/var/folders` to harden against malformed CC payloads.
+- **All 35 hook entries now have explicit timeouts** in `.claude-plugin/hooks.json` (previously 15 lacked `"timeout":` and could hang the session indefinitely). Validators: 10s; mid hooks: 30s; session export and quality-gate: 60s.
+- **`orchestrate.sh` reduced by 724 lines** — extracted `detect_providers` (118 lines) → `lib/providers.sh`; `embrace_full_workflow` (387 lines) → `lib/workflows.sh`; `is_agent_available_v2` + `get_tiered_agent_v2` + `get_fallback_agent` (219 lines) → `lib/model-resolver.sh`. Strict-source (no `2>/dev/null || true`) on those 3 critical libs so syntax errors surface instead of silently degrading.
+- **Untrusted external CLI output now nonce-wrapped** — `scripts/lib/spawn.sh` wraps the `## Output` fence of codex/gemini/perplexity results in `<!-- BEGIN-UNTRUSTED:provider=X:nonce=Y -->` / `<!-- END-UNTRUSTED -->` boundaries so downstream synthesis prompts can distinguish provider-authored text from trusted context. Complements the existing `sanitize_external_content` wrapping.
+- **`sanitize_external_content` nonce fallback fixed for macOS** — `date +%s%N` returns a literal `N` on BSD date, collapsing the fallback nonce to ~10 predictable digits. Replaced with `${RANDOM}${RANDOM}${RANDOM}$(date +%s)` for non-predictable uniqueness when `/dev/urandom` is unreadable.
+- **Manifest cleanup** — canonical `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` now agree on description/keywords/author/homepage. Keywords trimmed 20→10, `author.url` added, duplicated `homepage` dropped (repository field already present). Description prefix handling unchanged — `release.sh` continues to strip-then-prepend on version bump.
+
+### Removed
+
+- **`.claude-plugin/settings.json`** (17 `OCTOPUS_*` defaults) — Claude Code's plugin schema doesn't read this path; env vars are delivered via `hooks.json` env blocks and frontmatter. Dead config, no callers.
+- **`.gitmodules`** (0-byte stray) — repo has no submodules; file produced noisy `git submodule` warnings.
+
+### Security
+
+- `SECURITY.md` refreshed: soften "no eval with user data" claim to reflect the reality that `eval` is used only on scrubbed synthesized variable names in `lib/model-resolver.sh` and `lib/quality.sh`. Added note that `sysadmin-safety-gate.sh` is defense-in-depth, not a security boundary. Supported-versions table updated to 9.22.x.
+
 ## [9.22.1] - 2026-04-15
 
 ### Fixed

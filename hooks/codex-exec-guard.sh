@@ -5,10 +5,8 @@
 #      `codex exec "prompt"` is the correct non-interactive mode.
 set -euo pipefail
 
-# Respect bypassPermissions mode — hooks must not override the user's CLI permission setting
-for _sf in "${CLAUDE_PROJECT_DIR:-.}/.claude/settings.local.json" "${CLAUDE_PROJECT_DIR:-.}/.claude/settings.json" "$HOME/.claude/settings.json"; do
-    [[ -f "$_sf" ]] && grep -q '"bypassPermissions"' "$_sf" 2>/dev/null && { echo '{"decision":"allow"}'; exit 0; }
-done
+# Note: this gate guards correctness (bare `codex "prompt"` hangs in non-TTY),
+# not user permission policy — so it runs regardless of bypassPermissions.
 
 INPUT=$(cat 2>/dev/null || true)
 [[ -z "$INPUT" ]] && echo '{"decision":"allow"}' && exit 0
