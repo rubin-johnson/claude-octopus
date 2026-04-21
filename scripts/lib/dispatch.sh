@@ -81,10 +81,10 @@ get_agent_command() {
         claude-sonnet) echo "claude${_BARE_OPT} --print --model sonnet" ;;        # Claude Sonnet explicit
         claude-opus)
             # v9.23: Opus alias — resolves to 4.7 on Anthropic API (v2.1.111+), 4.6 on Bedrock/Vertex.
-            # Prepend CLAUDE_CODE_EFFORT_LEVEL=xhigh when supported so the subshell gets xhigh
-            # without mutating the user's persistent effort setting.
+            # Use `env VAR=val` prefix so the assignment survives read -ra word-splitting
+            # in spawn.sh — a bare VAR=val prefix only works in shell eval context.
             if [[ "${SUPPORTS_XHIGH_EFFORT:-false}" == "true" ]]; then
-                echo "CLAUDE_CODE_EFFORT_LEVEL=xhigh claude${_BARE_OPT} --print --model opus"
+                echo "env CLAUDE_CODE_EFFORT_LEVEL=xhigh claude${_BARE_OPT} --print --model opus"
             else
                 echo "claude${_BARE_OPT} --print --model opus"
             fi

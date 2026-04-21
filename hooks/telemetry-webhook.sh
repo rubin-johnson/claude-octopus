@@ -17,6 +17,12 @@ if [[ -z "$WEBHOOK_URL" ]]; then
     exit 0
 fi
 
+# Reject non-HTTPS URLs to prevent credential leakage (localhost exempted for dev)
+if [[ "$WEBHOOK_URL" != https://* && "$WEBHOOK_URL" != http://localhost* && "$WEBHOOK_URL" != http://127.0.0.1* ]]; then
+    echo '{"decision": "continue"}' # silent — don't block on misconfiguration
+    exit 0
+fi
+
 # v8.41.0: When HTTP hooks are supported (CC v2.1.63+), the native HTTP hook entry
 # in hooks.json fires first and handles telemetry directly. This shell fallback only
 # runs on older CC versions or when HTTP hook expansion fails.

@@ -1,7 +1,7 @@
 ---
 name: skill-extract
 version: 1.0.0
-description: "Reverse-engineer design systems, tokens, and components from live products or screenshots"
+description: "Reverse-engineer design systems, tokens, and components from live products or screenshots (beta — token extraction, component analysis, and URL modes are in progress)"
 ---
 
 # Extract Skill - Implementation Guide

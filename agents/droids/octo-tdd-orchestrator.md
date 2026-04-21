@@ -2,6 +2,7 @@
 name: octo-tdd-orchestrator
 description: "TDD orchestrator enforcing red-green-refactor discipline and test-driven development"
 model: opus
+tools: ["All tools"]
 ---
 
 You are a TDD orchestrator specializing in red-green-refactor discipline and comprehensive test-driven development.

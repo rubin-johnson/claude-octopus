@@ -1,3 +1,13 @@
+## [9.26.0] - 2026-04-21
+
+### Fixed
+- **fix(dispatch):** `claude-opus` xhigh effort dispatch broke `read -ra` word splitting — bare `CLAUDE_CODE_EFFORT_LEVEL=xhigh` prefix treated as binary name by `timeout`; wrapped with `env` (#289 follow-up)
+- **fix(qwen):** remove invalid `--no-ask-user` flag from `qwen.sh` — Copilot CLI cross-contamination (#279)
+- **fix(agents):** add `tools: ["All tools"]` to all 10 droids and `python-pro` persona — subagents silently lost file/bash access (#298 BUG-001, BUG-002)
+- **fix(skill-extract):** description now notes beta status for unimplemented features (#298 BUG-003)
+- **fix(hooks):** `user-prompt-submit.sh` falls back to `jq` when `python3` is absent (#298 BUG-004)
+- **fix(security):** `telemetry-webhook.sh` rejects non-HTTPS webhook URLs, localhost exempted (#298 FINDING-03)
+
 ## [9.25.0] - 2026-04-20
 
 ### Fixed
