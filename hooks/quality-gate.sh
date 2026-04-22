@@ -4,12 +4,20 @@
 # Returns JSON decision: {"decision": "continue|block", "reason": "..."}
 # v8.43: Added reference integrity check for cross-file dependencies
 set -euo pipefail
+# EXIT trap — emits diagnostic stderr ONLY when the hook exits non-zero, so
+# the Claude Code harness error "No stderr output" can never recur. EXIT (not
+# ERR) avoids over-firing on intermediate `grep -o`/`cmd | ...` inside $() that
+# the hook's logic already handles. See issue #313.
+_octo_hook_exit() { local c=$?; if [[ $c -ne 0 ]]; then echo "[hook:$(basename "$0")] exit $c" >&2 2>/dev/null || true; fi; return 0; }
+trap _octo_hook_exit EXIT
 
-VALIDATION_FILE=$(ls -t ~/.claude-octopus/results/tangle-validation-*.md 2>/dev/null | head -1)
+
+VALIDATION_FILE=$(ls -t ~/.claude-octopus/results/tangle-validation-*.md 2>/dev/null | head -1 || true)
 
 if [[ -f "$VALIDATION_FILE" ]]; then
-    # Check if quality gate passed
-    STATUS=$(grep -E "^## (Quality Gate|Status):" "$VALIDATION_FILE" | head -1)
+    # Check if quality gate passed. `|| true` — grep-no-match must not cascade
+    # under `set -o pipefail` and trigger the silent-fail path (issue #313).
+    STATUS=$(grep -E "^## (Quality Gate|Status):" "$VALIDATION_FILE" 2>/dev/null | head -1 || true)
 
     if echo "$STATUS" | grep -qi "failed"; then
         echo '{"decision": "block", "reason": "Quality gate validation failed. Review tangle output before proceeding."}'
@@ -25,6 +33,11 @@ fi
 # Reference integrity check: scan recently created/modified files for broken references
 # Catches: HTML linking missing JS/CSS, scripts sourcing missing files, configs referencing missing paths
 check_reference_integrity() {
+    # Scope-local: disable -u because bash 3.2 (macOS CI) aborts (exit 134)
+    # on `local arr=()` + `${#arr[@]}` when the array stays empty. We re-enable
+    # -u on exit. See issue #313 PR #314 CI failure trail.
+    set +u
+    trap 'set -u' RETURN
     local issues=()
 
     # Find files modified in the last 10 minutes (likely tangle output)
