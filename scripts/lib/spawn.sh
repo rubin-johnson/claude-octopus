@@ -823,6 +823,8 @@ ${heuristic_ctx}"
         echo "$pid:$agent_type:$task_id" >> "$PID_FILE"
     fi
 
+    wait "$pid" 2>/dev/null || true
+
     log INFO "Agent spawned with PID: $pid"
     echo "$pid"
 }
